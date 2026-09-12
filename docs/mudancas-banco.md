@@ -84,3 +84,25 @@ ALTER TABLE contratos_fornecedor
 As colunas `horas_banco`, `horas_minimas` e `valor_hora_excedente`
 ficaram sem uso (não foram removidas — `DROP COLUMN` é destrutivo e não
 há necessidade real de apagar, só de parar de gravar nelas).
+
+---
+
+## 2026-09-12 — Exceção de taxa por cliente em contratos_fornecedor
+
+Um fornecedor `hora_aberta` normalmente cobra a mesma taxa de qualquer
+cliente que atende (um único contrato "regra geral" cobre todo mundo).
+Alguns fornecedores (ex: Robson Augusto) têm uma taxa diferente pra um
+cliente específico (Tron R$50/h vs. R$70/h dos demais) — sem precisar
+cadastrar um contrato por cliente pra todo mundo, só quem realmente tem
+exceção ganha um contrato adicional vinculado ao cliente.
+
+```sql
+ALTER TABLE contratos_fornecedor
+    ADD COLUMN cliente_id INT NULL AFTER fornecedor_id,
+    ADD CONSTRAINT fk_contratos_fornecedor_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id);
+```
+
+Coluna nullable, adicionada sem risco (as 13 linhas já existentes viram
+`cliente_id = NULL`, que é o valor correto — "regra geral" — pra todas
+elas). Também foi criada `atualizar-contrato-fornecedor.php` (edição de
+contrato, que não existia até então).

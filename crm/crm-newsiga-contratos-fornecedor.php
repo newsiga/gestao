@@ -123,7 +123,10 @@
   const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
   function condicoesDe(c) {
-    if (c.tipo === 'hora_aberta') return `${fmt(c.valor_hora)}/h`;
+    if (c.tipo === 'hora_aberta') {
+      const escopo = c.cliente_id ? `exceção: ${c.cliente_nome}` : 'regra geral';
+      return `${fmt(c.valor_hora)}/h · ${escopo}`;
+    }
     if (c.tipo === 'mensalidade_fixa') return fmt(c.valor);
     return '—';
   }
@@ -169,7 +172,7 @@
               <select class="status-select" data-id="${c.id}" data-atual="${c.status}">${opcoes}</select>
               <div class="row-msg" id="msg-${c.id}"></div>
             </td>
-            <td>${botaoExcluir}</td>
+            <td><a href="crm-newsiga-cadastro-contrato-fornecedor.php?id=${c.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none;">editar</a>${botaoExcluir}</td>
           </tr>`;
       }).join('');
 

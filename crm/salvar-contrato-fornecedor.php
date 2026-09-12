@@ -12,6 +12,15 @@ require_once __DIR__.'/auth.php'; require_login_api();
  * despesas_competencia, sem precisar de todo o aparato de parcelas.
  * Nasce sempre em 'rascunho' — sem gatilho de ASAAS, então sem o status
  * intermediário 'aprovado' que o lado de receita usa.
+ *
+ * `cliente_id` (opcional, só faz sentido em hora_aberta): um fornecedor
+ * cobra a mesma taxa pra qualquer cliente na maioria dos casos — nesse
+ * caso, um único contrato com cliente_id NULL cobre todo mundo ("regra
+ * geral"). Quando um fornecedor tem uma taxa diferente pra um cliente
+ * específico (ex: Robson recebe R$50/h da Tron, R$70/h dos demais),
+ * cadastra-se um contrato adicional com cliente_id preenchido — vale só
+ * pra aquele cliente, sem precisar recriar um contrato por cliente pra
+ * todo mundo.
  */
 
 require_once __DIR__ . '/db.php';
@@ -29,6 +38,7 @@ $db = getDb();
 $fornecedorId  = filter_input(INPUT_POST, 'fornecedor_id', FILTER_VALIDATE_INT);
 $tipo          = $_POST['tipo'] ?? '';
 $descricao     = trim($_POST['descricao'] ?? '');
+$clienteId     = filter_input(INPUT_POST, 'cliente_id', FILTER_VALIDATE_INT) ?: null;
 
 $tiposValidos = ['mensalidade_fixa', 'hora_aberta'];
 
@@ -42,6 +52,14 @@ if ($fornecedorId) {
     $check->execute([$fornecedorId]);
     if (!$check->fetch()) {
         $erros[] = 'Fornecedor não encontrado.';
+    }
+}
+
+if ($clienteId) {
+    $checkCliente = $db->prepare('SELECT id FROM clientes WHERE id = ?');
+    $checkCliente->execute([$clienteId]);
+    if (!$checkCliente->fetch()) {
+        $erros[] = 'Cliente selecionado não encontrado.';
     }
 }
 
@@ -60,6 +78,7 @@ switch ($tipo) {
     case 'mensalidade_fixa':
         $valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
         if (!$valor || $valor <= 0) $erros[] = 'Valor mensal inválido.';
+        $clienteId = null; // não faz sentido vincular cliente a um valor fixo
         break;
 
     case 'hora_aberta':
@@ -77,10 +96,10 @@ if ($erros) {
 try {
     $stmt = $db->prepare("
         INSERT INTO contratos_fornecedor
-            (fornecedor_id, tipo, valor, valor_hora, dia_vencimento, descricao, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'rascunho')
+            (fornecedor_id, cliente_id, tipo, valor, valor_hora, dia_vencimento, descricao, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'rascunho')
     ");
-    $stmt->execute([$fornecedorId, $tipo, $valor, $valorHora, $diaVencimento, $descricao]);
+    $stmt->execute([$fornecedorId, $clienteId, $tipo, $valor, $valorHora, $diaVencimento, $descricao]);
     $contratoId = (int) $db->lastInsertId();
 
     echo json_encode(['sucesso' => true, 'contrato_fornecedor_id' => $contratoId]);

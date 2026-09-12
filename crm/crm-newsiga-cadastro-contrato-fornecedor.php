@@ -70,7 +70,7 @@
     <div class="breadcrumb" style="display:flex; align-items:center; gap:24px;">
       <a href="crm-newsiga-fornecedores.php" style="color:var(--muted); text-decoration:none; font-weight:600;">Fornecedores</a>
       <a href="crm-newsiga-contratos-fornecedor.php" style="color:var(--muted); text-decoration:none; font-weight:600;">Contratos de fornecedor</a>
-      <span style="color:var(--muted);">/ <b style="color:var(--forest);">Novo contrato</b></span>
+      <span style="color:var(--muted);">/ <b style="color:var(--forest);" id="breadcrumb-atual">Novo contrato</b></span>
     </div>
   </div>
 </nav>
@@ -83,6 +83,7 @@
   </div>
 
   <form id="contrato-form">
+    <input type="hidden" name="id" id="contrato-id">
     <div class="layout">
       <div>
         <div class="section">
@@ -116,6 +117,13 @@
             <div class="row2">
               <div class="field"><label>Valor por hora (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor_hora" placeholder="R$ 0,00"></div>
               <div class="field"><label>Dia de vencimento</label><input type="number" min="1" max="31" name="dia_vencimento" placeholder="5"></div>
+            </div>
+            <div class="field">
+              <label>Cliente <span style="color:var(--muted); font-weight:400;">— opcional, só se for uma exceção de taxa</span></label>
+              <select name="cliente_id" id="cliente-excecao-select">
+                <option value="">Regra geral — vale pra qualquer cliente</option>
+              </select>
+              <div class="hint">Deixe em branco se essa taxa vale pra qualquer cliente que o fornecedor atender (caso mais comum). Só selecione um cliente aqui se ESSE cliente específico tiver uma taxa diferente da regra geral do fornecedor (ex: Robson recebe R$50/h da Tron, mas R$70/h dos demais — nesse caso, cadastre um contrato "regra geral" a R$70 e outro contrato só pra Tron a R$50).</div>
             </div>
           </div>
 
@@ -165,25 +173,28 @@
   document.querySelectorAll('.money-input').forEach(el => el.addEventListener('input', () => aplicarMascaraMoeda(el)));
 
   const fornecedorIdPreSelecionado = new URLSearchParams(window.location.search).get('fornecedor_id');
+  const contratoIdEditandoParam = new URLSearchParams(window.location.search).get('id');
 
-  fetch('listar-fornecedores.php')
-    .then(r => r.json())
-    .then(data => {
-      const select = document.getElementById('fornecedor-select');
-      if (!data.sucesso || !data.fornecedores || data.fornecedores.length === 0) {
-        select.innerHTML = '<option value="">Nenhum fornecedor cadastrado ainda</option>';
-        return;
-      }
-      select.innerHTML = '<option value="" selected disabled>Selecione o fornecedor...</option>' + data.fornecedores.map(f =>
-        `<option value="${f.id}">${f.nome} (${f.tipo})</option>`
-      ).join('');
-      if (fornecedorIdPreSelecionado) {
-        select.value = fornecedorIdPreSelecionado;
-      }
-    })
-    .catch(() => {
-      document.getElementById('fornecedor-select').innerHTML = '<option value="">Falha ao carregar fornecedores</option>';
-    });
+  if (!contratoIdEditandoParam) {
+    fetch('listar-fornecedores.php')
+      .then(r => r.json())
+      .then(data => {
+        const select = document.getElementById('fornecedor-select');
+        if (!data.sucesso || !data.fornecedores || data.fornecedores.length === 0) {
+          select.innerHTML = '<option value="">Nenhum fornecedor cadastrado ainda</option>';
+          return;
+        }
+        select.innerHTML = '<option value="" selected disabled>Selecione o fornecedor...</option>' + data.fornecedores.map(f =>
+          `<option value="${f.id}">${f.nome} (${f.tipo})</option>`
+        ).join('');
+        if (fornecedorIdPreSelecionado) {
+          select.value = fornecedorIdPreSelecionado;
+        }
+      })
+      .catch(() => {
+        document.getElementById('fornecedor-select').innerHTML = '<option value="">Falha ao carregar fornecedores</option>';
+      });
+  }
 
   document.querySelectorAll('.type-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -194,11 +205,76 @@
       document.querySelectorAll('.type-fields').forEach(f => {
         const isActive = f.dataset.for === tipo;
         f.classList.toggle('active', isActive);
-        f.querySelectorAll('input').forEach(input => { input.disabled = !isActive; });
+        f.querySelectorAll('input, select').forEach(campo => { campo.disabled = !isActive; });
       });
     });
   });
-  document.querySelectorAll('.type-fields:not(.active) input').forEach(input => { input.disabled = true; });
+  document.querySelectorAll('.type-fields:not(.active) input, .type-fields:not(.active) select').forEach(campo => { campo.disabled = true; });
+
+  fetch('listar-clientes.php')
+    .then(r => r.json())
+    .then(data => {
+      const select = document.getElementById('cliente-excecao-select');
+      if (data.sucesso && data.clientes) {
+        select.innerHTML = '<option value="">Regra geral — vale pra qualquer cliente</option>' + data.clientes.map(c =>
+          `<option value="${c.id}">${c.nome}</option>`
+        ).join('');
+      }
+    })
+    .catch(() => {});
+
+  const contratoIdEditando = new URLSearchParams(window.location.search).get('id');
+  const ehEdicao = !!contratoIdEditando;
+
+  if (ehEdicao) {
+    document.getElementById('contrato-id').value = contratoIdEditando;
+    document.getElementById('breadcrumb-atual').textContent = 'Editar contrato';
+    document.querySelector('.eyebrow').textContent = 'editar contrato de fornecedor';
+    document.querySelector('h1').innerHTML = 'Atualizando um contrato <em>já cadastrado</em>.';
+    document.querySelector('.page-sub').textContent = 'O fornecedor não muda aqui — pra trocar de fornecedor, crie um contrato novo.';
+    document.getElementById('submit-btn').textContent = 'Salvar alterações';
+
+    fetch(`buscar-contrato-fornecedor.php?id=${contratoIdEditando}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.sucesso) { alert(data.erro || 'Contrato não encontrado.'); return; }
+        const c = data.contrato;
+
+        const selectFornecedor = document.getElementById('fornecedor-select');
+        selectFornecedor.innerHTML = `<option value="${c.fornecedor_id}" selected>${c.fornecedor_nome}</option>`;
+
+        const selecionarTipo = (tipo) => {
+          document.getElementById('tipo-input').value = tipo;
+          document.querySelectorAll('.type-card').forEach(card => card.classList.toggle('selected', card.dataset.tipo === tipo));
+          document.querySelectorAll('.type-fields').forEach(f => {
+            const isActive = f.dataset.for === tipo;
+            f.classList.toggle('active', isActive);
+            f.querySelectorAll('input, select').forEach(campo => { campo.disabled = !isActive; });
+          });
+        };
+        selecionarTipo(c.tipo);
+
+        document.querySelector(`.type-fields[data-for="${c.tipo}"] input[name="dia_vencimento"]`).value = c.dia_vencimento;
+        document.querySelector('input[name="descricao"]').value = c.descricao || '';
+
+        if (c.tipo === 'mensalidade_fixa') {
+          const campoValor = document.querySelector('.type-fields[data-for="mensalidade_fixa"] input[name="valor"]');
+          campoValor.value = 'R$ ' + Number(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        } else if (c.tipo === 'hora_aberta') {
+          const campoValorHora = document.querySelector('.type-fields[data-for="hora_aberta"] input[name="valor_hora"]');
+          campoValorHora.value = 'R$ ' + Number(c.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+          if (c.cliente_id) {
+            const setClienteSelecionado = () => { document.getElementById('cliente-excecao-select').value = c.cliente_id; };
+            // Se a lista de clientes ainda não carregou, tenta de novo em breve.
+            if (document.getElementById('cliente-excecao-select').options.length > 1) setClienteSelecionado();
+            else setTimeout(setClienteSelecionado, 500);
+          }
+        }
+      })
+      .catch(() => alert('Falha ao carregar dados do contrato.'));
+
+    document.getElementById('fornecedor-select').disabled = true;
+  }
 
   document.getElementById('contrato-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -216,7 +292,8 @@
       const formData = new FormData(e.target);
 
       camposMoeda.forEach((el, i) => { el.value = valoresOriginais[i]; });
-      const resp = await fetch('salvar-contrato-fornecedor.php', { method: 'POST', body: formData });
+      const endpoint = ehEdicao ? 'atualizar-contrato-fornecedor.php' : 'salvar-contrato-fornecedor.php';
+      const resp = await fetch(endpoint, { method: 'POST', body: formData });
       const data = await resp.json();
 
       if (!resp.ok) {
@@ -224,7 +301,7 @@
         msg.textContent = (data.detalhes ? data.detalhes.join(' ') : data.erro) || 'Erro ao salvar.';
       } else {
         msg.className = 'form-msg ok';
-        msg.textContent = `Contrato de fornecedor #${data.contrato_fornecedor_id} salvo.`;
+        msg.textContent = ehEdicao ? 'Contrato atualizado.' : `Contrato de fornecedor #${data.contrato_fornecedor_id} salvo.`;
         setTimeout(() => { window.location.href = 'crm-newsiga-contratos-fornecedor.php'; }, 1000);
       }
     } catch (err) {
@@ -232,7 +309,7 @@
       msg.textContent = 'Falha de conexão com o servidor.';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Salvar contrato ↗';
+      btn.textContent = ehEdicao ? 'Salvar alterações' : 'Salvar contrato ↗';
     }
   });
 </script>

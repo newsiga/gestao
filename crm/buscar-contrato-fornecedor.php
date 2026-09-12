@@ -20,9 +20,10 @@ if (!$contratoId) {
 try {
     $db = getDb();
     $stmt = $db->prepare("
-        SELECT cf.*, f.nome AS fornecedor_nome, f.movidesk_technician_name
+        SELECT cf.*, f.nome AS fornecedor_nome, f.movidesk_technician_name, cl.nome AS cliente_nome
         FROM contratos_fornecedor cf
         JOIN fornecedores f ON f.id = cf.fornecedor_id
+        LEFT JOIN clientes cl ON cl.id = cf.cliente_id
         WHERE cf.id = ?
     ");
     $stmt->execute([$contratoId]);

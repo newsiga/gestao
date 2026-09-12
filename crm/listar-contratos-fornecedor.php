@@ -14,11 +14,13 @@ try {
 
     $stmt = $db->query("
         SELECT
-            cf.id, cf.fornecedor_id, cf.tipo, cf.descricao, cf.valor, cf.valor_hora, cf.valor_hora_excedente,
-            cf.horas_banco, cf.horas_minimas, cf.dia_vencimento, cf.status, cf.criado_em,
-            f.nome AS fornecedor_nome, f.tipo AS fornecedor_tipo, f.movidesk_technician_name
+            cf.id, cf.fornecedor_id, cf.cliente_id, cf.tipo, cf.descricao, cf.valor, cf.valor_hora,
+            cf.dia_vencimento, cf.status, cf.criado_em,
+            f.nome AS fornecedor_nome, f.tipo AS fornecedor_tipo, f.movidesk_technician_name,
+            cl.nome AS cliente_nome
         FROM contratos_fornecedor cf
         JOIN fornecedores f ON f.id = cf.fornecedor_id
+        LEFT JOIN clientes cl ON cl.id = cf.cliente_id
         ORDER BY cf.criado_em DESC
     ");
     echo json_encode(['sucesso' => true, 'contratos' => $stmt->fetchAll()], JSON_UNESCAPED_UNICODE);

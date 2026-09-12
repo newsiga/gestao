@@ -151,7 +151,10 @@
   const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
   function condicoesDe(c) {
-    if (c.tipo === 'hora_aberta') return `${fmt(c.valor_hora)}/h · vence dia ${c.dia_vencimento}`;
+    if (c.tipo === 'hora_aberta') {
+      const escopo = c.cliente_id ? `exceção: ${c.cliente_nome}` : 'regra geral';
+      return `${fmt(c.valor_hora)}/h · ${escopo} · vence dia ${c.dia_vencimento}`;
+    }
     if (c.tipo === 'mensalidade_fixa') return `${fmt(c.valor)}/mês · vence dia ${c.dia_vencimento}`;
     return '—';
   }
@@ -183,7 +186,10 @@
           <div class="condicoes">${condicoesDe(c)}</div>
           <div class="contract-footer">
             <select class="status-select" data-id="${c.id}" data-atual="${c.status}">${opcoes}</select>
-            ${botaoExcluir}
+            <div>
+              <a href="crm-newsiga-cadastro-contrato-fornecedor.php?id=${c.id}" style="color:var(--forest); font-weight:600; font-size:12.5px; text-decoration:none; margin-right:12px;">editar</a>
+              ${botaoExcluir}
+            </div>
           </div>
           <div class="row-msg" id="msg-${c.id}"></div>
         </div>`;
