@@ -63,3 +63,24 @@ Comando executado (via SSH, produção):
 ```bash
 ssh -p 2222 hgnew010@br396.hostgator.com.br "cd repos/gestao && php -r \"require 'crm/db.php'; \\\$db = getDb(); \\\$db->exec(file_get_contents('php://stdin'));\" < schema.sql"
 ```
+
+---
+
+## 2026-09-12 — Remoção do banco de horas em contratos_fornecedor
+
+Diferente do cliente, fornecedor não tem contrato de banco de horas — só
+fixo mensal ou hora aberta (uma taxa por relação/cliente atendido, ex:
+Robson tem uma taxa pra HubVision-clientes, outra pra HubVision-TOTVS,
+outra pra MobCode). Removidos `banco_horas_minimo`/`banco_horas_consumo`
+do enum de `contratos_fornecedor.tipo`. Verificado antes: só 1 linha
+existia na tabela (tipo `mensalidade_fixa`, rascunho de teste) — sem
+risco de perda de dado.
+
+```sql
+ALTER TABLE contratos_fornecedor
+    MODIFY COLUMN tipo ENUM('mensalidade_fixa','hora_aberta') NOT NULL;
+```
+
+As colunas `horas_banco`, `horas_minimas` e `valor_hora_excedente`
+ficaram sem uso (não foram removidas — `DROP COLUMN` é destrutivo e não
+há necessidade real de apagar, só de parar de gravar nelas).

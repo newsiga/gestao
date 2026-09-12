@@ -98,9 +98,7 @@
           <input type="hidden" name="tipo" id="tipo-input" value="mensalidade_fixa">
           <div class="type-grid">
             <div class="type-card selected" data-tipo="mensalidade_fixa"><h4>Valor fixo</h4><p>Valor mensal fixo, sem lógica de consumo.</p></div>
-            <div class="type-card" data-tipo="hora_aberta"><h4>Hora aberta</h4><p>Sem banco, sem excedente — só consumo × taxa única.</p></div>
-            <div class="type-card" data-tipo="banco_horas_minimo"><h4>Banco com mínimo</h4><p>Mínimo garantido pago sempre; excedente em taxa própria.</p></div>
-            <div class="type-card" data-tipo="banco_horas_consumo"><h4>Banco sem mínimo</h4><p>Paga só o consumido dentro do banco; excedente em taxa própria.</p></div>
+            <div class="type-card" data-tipo="hora_aberta"><h4>Hora aberta</h4><p>Consumo × taxa por hora — uma taxa por relação/cliente.</p></div>
           </div>
         </div>
 
@@ -121,28 +119,6 @@
             </div>
           </div>
 
-          <div class="type-fields" data-for="banco_horas_consumo">
-            <div class="row2">
-              <div class="field"><label>Tamanho do banco (horas)</label><input type="number" step="0.01" name="horas_banco" placeholder="100"></div>
-              <div class="field"><label>Dia de vencimento</label><input type="number" min="1" max="31" name="dia_vencimento" placeholder="5"></div>
-            </div>
-            <div class="row2">
-              <div class="field"><label>Valor por hora — dentro do banco (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor_hora" placeholder="R$ 0,00"></div>
-              <div class="field"><label>Valor por hora — excedente ao banco (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor_hora_excedente" placeholder="R$ 0,00"></div>
-            </div>
-          </div>
-
-          <div class="type-fields" data-for="banco_horas_minimo">
-            <div class="row2">
-              <div class="field"><label>Valor mínimo garantido (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" placeholder="R$ 0,00"></div>
-              <div class="field"><label>Quantidade de horas do pacote <span style="color:var(--muted); font-weight:400;">— necessário se houver excedente</span></label><input type="number" step="0.01" name="horas_minimas" placeholder="8"></div>
-            </div>
-            <div class="field"><label>Valor por hora excedente (R$) <span style="color:var(--muted); font-weight:400;">— opcional</span></label><input type="text" inputmode="decimal" class="money-input" name="valor_hora" placeholder="R$ 0,00 (opcional)"></div>
-            <div class="field">
-              <label>Dia de vencimento</label>
-              <input type="number" min="1" max="31" name="dia_vencimento" value="5" style="max-width:120px;">
-            </div>
-          </div>
         </div>
 
         <div class="section">

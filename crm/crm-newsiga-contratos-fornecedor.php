@@ -110,8 +110,6 @@
   const tipoLabels = {
     mensalidade_fixa: 'valor fixo',
     hora_aberta: 'hora aberta',
-    banco_horas_minimo: 'banco c/ mínimo',
-    banco_horas_consumo: 'banco s/ mínimo',
   };
   const statusLabels = { rascunho: 'Rascunho', ativo: 'Ativo', concluido: 'Concluído', encerrado: 'Encerrado' };
 
@@ -125,12 +123,6 @@
   const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
 
   function condicoesDe(c) {
-    if (c.tipo === 'banco_horas_minimo') {
-      return c.valor_hora ? `mín. ${fmt(c.valor)} · excedente ${fmt(c.valor_hora)}/h` : `mín. ${fmt(c.valor)} · sem excedente`;
-    }
-    if (c.tipo === 'banco_horas_consumo') {
-      return `${c.horas_banco}h no banco · ${fmt(c.valor_hora)}/h · excedente ${fmt(c.valor_hora_excedente)}/h`;
-    }
     if (c.tipo === 'hora_aberta') return `${fmt(c.valor_hora)}/h`;
     if (c.tipo === 'mensalidade_fixa') return fmt(c.valor);
     return '—';
