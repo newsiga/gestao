@@ -163,7 +163,7 @@
     encerrado: ['encerrado'],
   };
 
-  const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
   function calcularResumo() {
     // Só considera contratos ainda relevantes — encerrados não entram no

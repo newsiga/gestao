@@ -140,7 +140,7 @@
   }
   function valorParaMascara(v) {
     if (v === null || v === undefined || v === '') return '';
-    return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   }
 
   function campoMoeda(name, label, valorAtual, opcional) {
@@ -203,7 +203,7 @@
         let html = '<div style="border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--white);">';
         data.parcelas.forEach(p => {
           const dataFormatada = new Date(p.vencimento + 'T00:00:00').toLocaleDateString('pt-BR');
-          const valorFormatado = 'R$ ' + Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+          const valorFormatado = 'R$ ' + Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
           html += `
             <div style="display:grid; grid-template-columns:40px 1fr 100px 140px; gap:12px; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border);" data-parcela-row="${p.id}">
               <span style="font-family:var(--font-display); font-weight:700; color:var(--muted); font-size:13px;">${p.numero}</span>

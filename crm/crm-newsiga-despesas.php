@@ -134,7 +134,7 @@
 </div>
 
 <script>
-  const fmt = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  const fmt = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   const hojeISO = () => new Date().toISOString().slice(0, 10);
   const mesAtual = () => hojeISO().slice(0, 7);
 

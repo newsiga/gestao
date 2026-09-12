@@ -155,7 +155,7 @@
     const base = Number(contrato.valor || 0);
     const variavel = parseFloat(moedaParaDecimal(document.getElementById('despesa-variavel').value)) || 0;
     const total = base + variavel;
-    document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   }
 
   // Contratos "hora_aberta" já têm uma taxa única (valor_hora) — o valor
@@ -171,7 +171,7 @@
     // de arredondamento prematuro (mesmo cuidado que a planilha tem).
     const horas = horasParaDecimal(document.getElementById('horas-consumidas-display').value);
     const total = horas * Number(contrato.valor_hora || 0);
-    document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+    document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   }
 
   function atualizarBlocoFixoVariavel() {
@@ -185,13 +185,13 @@
       bloco.style.display = 'block';
       hintHoras.style.display = 'none';
       valorLabel.textContent = 'Valor total do mês (R$) — fixo + variável';
-      document.getElementById('valor-fixo-base').value = 'R$ ' + Number(contrato.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+      document.getElementById('valor-fixo-base').value = 'R$ ' + Number(contrato.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       document.getElementById('despesa-variavel').value = '';
       recalcularTotalFixo();
     } else if (contrato && contrato.tipo === 'hora_aberta') {
       bloco.style.display = 'none';
       hintHoras.style.display = 'block';
-      valorLabel.textContent = `Valor (R$) — R$ ${Number(contrato.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/h`;
+      valorLabel.textContent = `Valor (R$) — R$ ${Number(contrato.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/h`;
       document.getElementById('horas-consumidas').value = '';
       document.getElementById('horas-consumidas-display').value = '';
       document.getElementById('valor').value = '';

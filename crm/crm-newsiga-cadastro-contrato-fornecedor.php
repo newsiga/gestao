@@ -259,10 +259,10 @@
 
         if (c.tipo === 'mensalidade_fixa') {
           const campoValor = document.querySelector('.type-fields[data-for="mensalidade_fixa"] input[name="valor"]');
-          campoValor.value = 'R$ ' + Number(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+          campoValor.value = 'R$ ' + Number(c.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         } else if (c.tipo === 'hora_aberta') {
           const campoValorHora = document.querySelector('.type-fields[data-for="hora_aberta"] input[name="valor_hora"]');
-          campoValorHora.value = 'R$ ' + Number(c.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+          campoValorHora.value = 'R$ ' + Number(c.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
           if (c.cliente_id) {
             const setClienteSelecionado = () => { document.getElementById('cliente-excecao-select').value = c.cliente_id; };
             // Se a lista de clientes ainda não carregou, tenta de novo em breve.

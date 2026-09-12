@@ -225,7 +225,7 @@
         <div class="subscription-meta">
           <span>id: <b>${assinaturaAtiva.id}</b></span>
           <span>ciclo: <b>${assinaturaAtiva.cycle || '—'}</b></span>
-          <span>valor atual: <b>R$ ${Number(assinaturaAtiva.value || 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</b></span>
+          <span>valor atual: <b>R$ ${Number(assinaturaAtiva.value || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})}</b></span>
         </div>
         <div class="decision-group">
           <div class="decision-label">O que fazer com essa assinatura?</div>
@@ -248,7 +248,7 @@
       document.getElementById('secao-cobrancas').style.display = 'block';
       document.getElementById('cobrancas-rows').innerHTML = data.cobrancas_preview.map(p => {
         const dataFmt = new Date(p.vencimento + 'T00:00:00').toLocaleDateString('pt-BR');
-        const valorFmt = 'R$ ' + Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        const valorFmt = 'R$ ' + Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         return `<div class="charge-row"><span>Parcela ${p.numero} — ${dataFmt}</span><span>${valorFmt}</span></div>`;
       }).join('');
     }

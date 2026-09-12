@@ -314,8 +314,8 @@
     for (let n = 1; n <= MAX_PARCELAS; n++) {
       const valorParcela = Math.floor((valorTotal * 100) / n) / 100; // valor-base (a última parcela absorve centavos, calculado de verdade no servidor)
       const label = n === 1
-        ? `À vista — R$ ${valorParcela.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`
-        : `${n}x de R$ ${valorParcela.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        ? `À vista — R$ ${valorParcela.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+        : `${n}x de R$ ${valorParcela.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
       html += `<option value="${n}">${label}</option>`;
     }
     select.innerHTML = html;
@@ -369,7 +369,7 @@
       dataBase.setDate(Math.min(diaOriginal, ultimoDiaDoMes));
       proximoDiaUtilPreview(dataBase);
       const dataFormatada = dataBase.toLocaleDateString('pt-BR');
-      const valorFormatado = 'R$ ' + valores[i].toLocaleString('pt-BR', {minimumFractionDigits: 2});
+      const valorFormatado = 'R$ ' + valores[i].toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
       html += `<div class="charge-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:13px; border-top:1px solid var(--border);"><span>Parcela ${i + 1} — ${dataFormatada}</span><span style="font-family:var(--font-display); font-weight:700;">${valorFormatado}</span></div>`;
     }
     rows.innerHTML = html;

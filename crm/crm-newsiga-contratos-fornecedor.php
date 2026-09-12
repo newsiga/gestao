@@ -120,7 +120,7 @@
     encerrado: ['encerrado'],
   };
 
-  const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
   function condicoesDe(c) {
     if (c.tipo === 'hora_aberta') {

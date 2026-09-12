@@ -51,3 +51,7 @@ O trabalho acontece em duas máquinas (G15 e Yoga). Pra evitar conflito:
 ## 7. Backup antes de mudança arriscada
 
 Ao migrar ou reestruturar algo que já está em produção (trocar raiz de documento, criar link simbólico, mover pasta): sempre manter uma cópia do estado anterior intacta (renomear em vez de apagar) até confirmar que a mudança nova está estável — mesmo princípio já aplicado nas migrações do CRM e da área do cliente.
+
+## 8. Campos de valor (R$) — sempre 2 casas decimais, nunca mais
+
+Qualquer campo que exibe dinheiro (JS, `toLocaleString('pt-BR', ...)`) deve sempre passar **`minimumFractionDigits: 2` junto com `maximumFractionDigits: 2`**. Passar só `minimumFractionDigits` deixa o JavaScript livre pra mostrar até 3 casas quando o valor não é "redondo" (ex: um cálculo de hora × taxa que dá dízima, tipo 41,4667 × R$50 = R$2.073,333...) — o resultado aparece como "R$ 2.073,333" em vez de "R$ 2.073,33". Todo campo de valor editável também deve ter máscara de moeda (mesmo padrão `aplicarMascaraMoeda`/`moedaParaDecimal` já usado em várias telas do CRM).

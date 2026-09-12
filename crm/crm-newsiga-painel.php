@@ -263,7 +263,7 @@
   };
   const statusLabels = { rascunho: 'rascunho', aprovado: 'aprovado', ativo: 'ativo', concluido: 'concluído', encerrado: 'encerrado' };
   const statusClass = { ativo: 'gerado', aprovado: 'gerar', rascunho: 'gerar', concluido: 'gerado', encerrado: 'atraso' };
-  const fmtMoedaPt = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  const fmtMoedaPt = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   const hojeISO = () => new Date().toISOString().slice(0, 10);
 
   // ---- Seletor de competência: gerado dinamicamente, sempre com o mês
@@ -443,7 +443,7 @@
     banco_horas_minimo: 'banco de horas — mínimo garantido',
     banco_horas_consumo: 'banco de horas — sem mínimo',
   };
-  const fmtMoeda = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  const fmtMoeda = (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
   const fmtDataCurta = (iso) => {
     const [ano, mes, dia] = iso.split('-');
     return `${dia}/${mes}`;

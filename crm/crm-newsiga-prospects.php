@@ -112,7 +112,7 @@
     ganho: 'Ganho',
     perdido: 'Perdido',
   };
-  const fmt = (v) => v === null || v === undefined ? '' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  const fmt = (v) => v === null || v === undefined ? '' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
   let todosProspects = [];
   let filtroAtivo = '';
