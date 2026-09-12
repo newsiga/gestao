@@ -114,6 +114,21 @@
     </div>
   </div>
 
+  <div class="section-head" style="display:flex; justify-content:space-between; align-items:center; margin:36px 0 16px;">
+    <h2 style="font-family:var(--font-display); font-size:18px; font-weight:800;">Custo por fornecedor — mês atual</h2>
+    <span style="font-size:12.5px; color:var(--muted);" id="custo-fornecedor-tag">—</span>
+  </div>
+  <div class="panel">
+    <table>
+      <thead>
+        <tr><th>Fornecedor</th><th>Lançamentos</th><th>Total do mês</th></tr>
+      </thead>
+      <tbody id="custo-fornecedor-tbody">
+        <tr><td colspan="3" style="color:var(--muted); font-style:italic; padding:24px;">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <div class="filters" id="filters">
     <button class="filter-btn active" data-status="">Todas</button>
     <button class="filter-btn" data-status="a_pagar">A pagar</button>
@@ -172,6 +187,41 @@
     document.getElementById('kpi-atraso-delta').textContent = `${atrasadas.length} despesa${atrasadas.length === 1 ? '' : 's'}`;
   }
 
+  // Visão consolidada: quanto cada fornecedor recebeu (ou vai receber)
+  // no mês, somando todos os contratos dele — o card de Despesa do mês
+  // já mostra o total geral, este quebra por fornecedor.
+  function renderCustoPorFornecedor() {
+    const mes = mesAtual();
+    const despesasDoMes = todasDespesas.filter(d => d.vencimento.slice(0, 7) === mes);
+    const tbody = document.getElementById('custo-fornecedor-tbody');
+    const tag = document.getElementById('custo-fornecedor-tag');
+
+    if (despesasDoMes.length === 0) {
+      tag.textContent = '—';
+      tbody.innerHTML = '<tr><td colspan="3" style="color:var(--muted); font-style:italic; padding:24px;">Nenhuma despesa lançada neste mês ainda.</td></tr>';
+      return;
+    }
+
+    const porFornecedor = {};
+    despesasDoMes.forEach(d => {
+      if (!porFornecedor[d.fornecedor_nome]) {
+        porFornecedor[d.fornecedor_nome] = { total: 0, qtd: 0 };
+      }
+      porFornecedor[d.fornecedor_nome].total += Number(d.valor);
+      porFornecedor[d.fornecedor_nome].qtd += 1;
+    });
+
+    const linhas = Object.entries(porFornecedor).sort((a, b) => b[1].total - a[1].total);
+    tag.textContent = `${linhas.length} fornecedor${linhas.length === 1 ? '' : 'es'}`;
+
+    tbody.innerHTML = linhas.map(([nome, dados]) => `
+      <tr>
+        <td class="name">${nome}</td>
+        <td style="color:var(--muted);">${dados.qtd} lançamento${dados.qtd === 1 ? '' : 's'}</td>
+        <td>${fmt(dados.total)}</td>
+      </tr>`).join('');
+  }
+
   function renderizar() {
     const tbody = document.getElementById('despesas-tbody');
     const lista = (filtroAtivo ? todasDespesas.filter(d => d.status === filtroAtivo) : todasDespesas)
@@ -221,6 +271,7 @@
           todasDespesas = todasDespesas.filter(d => String(d.id) !== String(despesaId));
           renderizar();
           renderKpis();
+            renderCustoPorFornecedor();
         } catch (err) {
           alert('Falha de conexão ao excluir.');
         }
@@ -253,6 +304,7 @@
             if (item) item.status = novoStatus;
             renderizar();
             renderKpis();
+            renderCustoPorFornecedor();
           }
         } catch (err) {
           msg.className = 'row-msg error';
@@ -282,6 +334,7 @@
     todasFaturas = (faturasData.sucesso && faturasData.faturas) ? faturasData.faturas : [];
     renderizar();
     renderKpis();
+            renderCustoPorFornecedor();
   }).catch(() => {
     document.getElementById('despesas-tbody').innerHTML =
       '<tr><td colspan="6" style="color:var(--red); padding:24px;">Falha ao carregar despesas do servidor.</td></tr>';
