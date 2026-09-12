@@ -83,9 +83,10 @@
       </div>
 
       <div class="row2">
+        <div class="field"><label id="horas-label">Horas consumidas <span style="color:var(--muted); font-weight:400;">— opcional</span></label><input type="number" step="0.01" name="horas_consumidas" id="horas-consumidas" placeholder="ex: 12.5"></div>
         <div class="field"><label id="valor-label">Valor (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" id="valor" required placeholder="R$ 0,00"></div>
-        <div class="field"><label>Horas consumidas <span style="color:var(--muted); font-weight:400;">— opcional</span></label><input type="number" step="0.01" name="horas_consumidas" placeholder="ex: 12.5"></div>
       </div>
+      <div class="hint" id="hint-calculo-horas" style="display:none; margin-top:-10px; margin-bottom:18px;">Valor calculado automaticamente (horas × R$/h do contrato) — ainda dá pra ajustar à mão, se precisar.</div>
     </div>
 
     <div class="actions">
@@ -110,6 +111,7 @@
   }
   document.getElementById('valor').addEventListener('input', (e) => aplicarMascaraMoeda(e.target));
   document.getElementById('despesa-variavel').addEventListener('input', (e) => { aplicarMascaraMoeda(e.target); recalcularTotalFixo(); });
+  document.getElementById('horas-consumidas').addEventListener('input', recalcularValorPorHoras);
 
   let contratosAtivos = [];
 
@@ -128,20 +130,42 @@
     document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
   }
 
+  // Contratos "hora_aberta" já têm uma taxa única (valor_hora) — o valor
+  // final é sempre horas × taxa. Continua editável à mão depois, caso
+  // precise de um ajuste pontual (arredondamento, acordo diferente etc).
+  function recalcularValorPorHoras() {
+    const contratoId = document.getElementById('contrato-select').value;
+    const contrato = contratosAtivos.find(c => String(c.id) === String(contratoId));
+    if (!contrato || contrato.tipo !== 'hora_aberta') return;
+
+    const horas = parseFloat(document.getElementById('horas-consumidas').value) || 0;
+    const total = horas * Number(contrato.valor_hora || 0);
+    document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  }
+
   function atualizarBlocoFixoVariavel() {
     const contratoId = document.getElementById('contrato-select').value;
     const contrato = contratosAtivos.find(c => String(c.id) === String(contratoId));
     const bloco = document.getElementById('fixo-variavel-block');
     const valorLabel = document.getElementById('valor-label');
+    const hintHoras = document.getElementById('hint-calculo-horas');
 
     if (contrato && contrato.tipo === 'mensalidade_fixa') {
       bloco.style.display = 'block';
+      hintHoras.style.display = 'none';
       valorLabel.textContent = 'Valor total do mês (R$) — fixo + variável';
       document.getElementById('valor-fixo-base').value = 'R$ ' + Number(contrato.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
       document.getElementById('despesa-variavel').value = '';
       recalcularTotalFixo();
+    } else if (contrato && contrato.tipo === 'hora_aberta') {
+      bloco.style.display = 'none';
+      hintHoras.style.display = 'block';
+      valorLabel.textContent = `Valor (R$) — R$ ${Number(contrato.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/h`;
+      document.getElementById('horas-consumidas').value = '';
+      document.getElementById('valor').value = '';
     } else {
       bloco.style.display = 'none';
+      hintHoras.style.display = 'none';
       valorLabel.textContent = 'Valor (R$)';
     }
   }
