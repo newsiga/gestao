@@ -74,8 +74,16 @@
         <div class="field"><label>Vencimento</label><input type="date" name="vencimento" id="vencimento" required></div>
       </div>
 
+      <div class="field" id="fixo-variavel-block" style="display:none;">
+        <div class="row2">
+          <div class="field"><label>Valor fixo do contrato (R$)</label><input type="text" id="valor-fixo-base" disabled></div>
+          <div class="field"><label>Despesa variável do mês (R$) <span style="color:var(--muted); font-weight:400;">— opcional</span></label><input type="text" inputmode="decimal" class="money-input" id="despesa-variavel" placeholder="R$ 0,00"></div>
+        </div>
+        <div class="hint">Reembolso do mês somado ao fixo — ex: combustível, material. Some ao valor fixo do contrato pra formar o total abaixo.</div>
+      </div>
+
       <div class="row2">
-        <div class="field"><label>Valor (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" id="valor" required placeholder="R$ 0,00"></div>
+        <div class="field"><label id="valor-label">Valor (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" id="valor" required placeholder="R$ 0,00"></div>
         <div class="field"><label>Horas consumidas <span style="color:var(--muted); font-weight:400;">— opcional</span></label><input type="number" step="0.01" name="horas_consumidas" placeholder="ex: 12.5"></div>
       </div>
     </div>
@@ -101,8 +109,42 @@
     return limpo.replace(/\./g, '').replace(',', '.');
   }
   document.getElementById('valor').addEventListener('input', (e) => aplicarMascaraMoeda(e.target));
+  document.getElementById('despesa-variavel').addEventListener('input', (e) => { aplicarMascaraMoeda(e.target); recalcularTotalFixo(); });
 
   let contratosAtivos = [];
+
+  // Contratos "mensalidade_fixa" mostram o valor fixo (do contrato) +
+  // despesa variável do mês (reembolso, opcional) — o campo "Valor"
+  // final vira a soma dos dois, mas continua editável à mão se precisar
+  // de um ajuste pontual.
+  function recalcularTotalFixo() {
+    const contratoId = document.getElementById('contrato-select').value;
+    const contrato = contratosAtivos.find(c => String(c.id) === String(contratoId));
+    if (!contrato || contrato.tipo !== 'mensalidade_fixa') return;
+
+    const base = Number(contrato.valor || 0);
+    const variavel = parseFloat(moedaParaDecimal(document.getElementById('despesa-variavel').value)) || 0;
+    const total = base + variavel;
+    document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+  }
+
+  function atualizarBlocoFixoVariavel() {
+    const contratoId = document.getElementById('contrato-select').value;
+    const contrato = contratosAtivos.find(c => String(c.id) === String(contratoId));
+    const bloco = document.getElementById('fixo-variavel-block');
+    const valorLabel = document.getElementById('valor-label');
+
+    if (contrato && contrato.tipo === 'mensalidade_fixa') {
+      bloco.style.display = 'block';
+      valorLabel.textContent = 'Valor total do mês (R$) — fixo + variável';
+      document.getElementById('valor-fixo-base').value = 'R$ ' + Number(contrato.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+      document.getElementById('despesa-variavel').value = '';
+      recalcularTotalFixo();
+    } else {
+      bloco.style.display = 'none';
+      valorLabel.textContent = 'Valor (R$)';
+    }
+  }
 
   // Sugere o vencimento (mês seguinte ao da competência, no dia de
   // vencimento do contrato) assim que a competência ou o contrato mudam
@@ -124,7 +166,7 @@
     const vencimento = `${anoSeguinte}-${String(mesSeguinte).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     document.getElementById('vencimento').value = vencimento;
   }
-  document.getElementById('contrato-select').addEventListener('change', sugerirVencimento);
+  document.getElementById('contrato-select').addEventListener('change', () => { sugerirVencimento(); atualizarBlocoFixoVariavel(); });
   document.getElementById('competencia').addEventListener('change', sugerirVencimento);
 
   fetch('listar-contratos-fornecedor.php')
