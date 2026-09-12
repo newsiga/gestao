@@ -78,6 +78,12 @@ Se algum desses "sumir" depois de um `git pull` num clone novo, é porque nunca 
 
 Arquivos de config referenciados via caminho relativo (`__DIR__ . '/../config.php'` ou similar) calculam esse caminho a partir da localização **real** do arquivo — que muda quando o arquivo é acessado através de um link simbólico. Ao migrar mais alguma coisa desse jeito, sempre conferir se algum `require`/`include` usa caminho relativo antes de trocar a pasta ao vivo por um link.
 
+## Deploy como parte do ciclo de desenvolvimento
+
+Diferente de um ajuste pontual, o desenvolvimento ativo (com o Claude Code) normalmente exige testar cada mudança no ambiente real — não dá pra validar só localmente. Nesse contexto, o deploy deixa de ser um evento raro e passa a acontecer várias vezes ao longo de uma sessão de trabalho. Pode pedir pro Claude Code rodar o passo de deploy (comandos acima) sempre que quiser ver o resultado de uma alteração, sem tratar isso como algo excepcional.
+
+Se esse ritmo ficar frequente o suficiente para incomodar, o próximo passo natural é automatizar via GitHub Action (deploy automático a cada `push` na branch principal) — elimina até o comando manual de SSH. Não é necessário agora, mas fica registrado como evolução natural quando o fluxo atual pesar.
+
 ## Pastas antigas mantidas como backup
 
 - `~/crm.newsiga.com.br/` (versão anterior à migração)
