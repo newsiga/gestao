@@ -98,9 +98,15 @@ exceção ganha um contrato adicional vinculado ao cliente.
 
 ```sql
 ALTER TABLE contratos_fornecedor
-    ADD COLUMN cliente_id INT NULL AFTER fornecedor_id,
+    ADD COLUMN cliente_id INT UNSIGNED NULL AFTER fornecedor_id,
     ADD CONSTRAINT fk_contratos_fornecedor_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id);
 ```
+
+**Atenção pra próxima vez**: a primeira tentativa usou `INT NULL` (sem
+`UNSIGNED`) e falhou silenciosamente — `clientes.id` é `INT(10)
+UNSIGNED`, e o MySQL recusa criar uma FK quando os tipos não batem
+exatamente (assinado × não assinado). Sempre conferir `SHOW CREATE
+TABLE` da tabela referenciada antes de escrever uma FK nova.
 
 Coluna nullable, adicionada sem risco (as 13 linhas já existentes viram
 `cliente_id = NULL`, que é o valor correto — "regra geral" — pra todas
