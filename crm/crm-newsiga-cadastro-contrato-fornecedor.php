@@ -108,9 +108,10 @@
 
           <div class="type-fields active" data-for="mensalidade_fixa">
             <div class="row2">
-              <div class="field"><label>Valor mensal (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" placeholder="R$ 0,00"></div>
+              <div class="field"><label>Valor de cada lançamento (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" placeholder="R$ 0,00"></div>
               <div class="field"><label>Dia de vencimento</label><input type="number" min="1" max="31" name="dia_vencimento" placeholder="5"></div>
             </div>
+            <div class="hint">Não precisa ser mensal — serve pra qualquer valor fixo recorrente com essa periodicidade (ex: anuidade parcelada em 3x, trimestral, etc). Você lança manualmente só quando uma parcela vence, não todo mês.</div>
           </div>
 
           <div class="type-fields" data-for="hora_aberta">
