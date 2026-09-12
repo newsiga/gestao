@@ -167,8 +167,17 @@
         msg.textContent = (data.detalhes ? data.detalhes.join(' ') : data.erro) || 'Erro ao salvar.';
       } else {
         msg.className = 'form-msg ok';
-        msg.textContent = 'Fornecedor salvo com sucesso.';
-        setTimeout(() => { window.location.href = 'crm-newsiga-fornecedores.php'; }, 900);
+        // Ao CRIAR um fornecedor novo, o próximo passo natural é cadastrar
+        // o primeiro contrato dele (é lá que entram os valores — um
+        // fornecedor pode ter vários contratos, um por relação/cliente).
+        // Na edição, volta pra listagem normalmente.
+        if (ehEdicao) {
+          msg.textContent = 'Fornecedor atualizado com sucesso.';
+          setTimeout(() => { window.location.href = 'crm-newsiga-fornecedores.php'; }, 900);
+        } else {
+          msg.textContent = 'Fornecedor salvo. Agora cadastre o primeiro contrato (é lá que entra o valor)...';
+          setTimeout(() => { window.location.href = `crm-newsiga-cadastro-contrato-fornecedor.php?fornecedor_id=${data.fornecedor_id}`; }, 900);
+        }
       }
     } catch (err) {
       msg.className = 'form-msg error';

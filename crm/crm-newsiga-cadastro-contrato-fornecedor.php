@@ -79,7 +79,7 @@
   <div class="page-head">
     <div class="eyebrow">cadastro de contrato de fornecedor</div>
     <h1>Quanto e <em>como</em> a Newsiga paga.</h1>
-    <p class="page-sub">Cada fornecedor pode ter mais de um contrato ativo ao mesmo tempo. Este formulário grava um contrato novo, em rascunho.</p>
+    <p class="page-sub">Cada fornecedor pode ter mais de um contrato ativo ao mesmo tempo — um por relação/cliente (ex: fixo mensal + repasse de um cliente + repasse de outro). Este formulário grava um contrato novo, em rascunho.</p>
   </div>
 
   <form id="contrato-form">
@@ -147,7 +147,11 @@
 
         <div class="section">
           <span class="section-label">Detalhes</span>
-          <div class="field"><label>Descrição do contrato</label><input type="text" name="descricao" placeholder="ex: Suporte técnico mensal, Contabilidade..."></div>
+          <div class="field">
+            <label>Descrição do contrato</label>
+            <input type="text" name="descricao" placeholder="ex: Fixo mensal, Repasse MobCode/TOPPUS, Repasse HubVision — TOTVS...">
+            <div class="hint">Se este contrato for um repasse de um cliente específico (ex: Robson recebendo por horas do MobCode ou da HubVision), identifique o cliente aqui — o valor/hora é o que <b>o fornecedor recebe</b>, não o que a Newsiga cobra do cliente.</div>
+          </div>
         </div>
 
         <div class="actions">
@@ -184,6 +188,8 @@
   }
   document.querySelectorAll('.money-input').forEach(el => el.addEventListener('input', () => aplicarMascaraMoeda(el)));
 
+  const fornecedorIdPreSelecionado = new URLSearchParams(window.location.search).get('fornecedor_id');
+
   fetch('listar-fornecedores.php')
     .then(r => r.json())
     .then(data => {
@@ -195,6 +201,9 @@
       select.innerHTML = '<option value="" selected disabled>Selecione o fornecedor...</option>' + data.fornecedores.map(f =>
         `<option value="${f.id}">${f.nome} (${f.tipo})</option>`
       ).join('');
+      if (fornecedorIdPreSelecionado) {
+        select.value = fornecedorIdPreSelecionado;
+      }
     })
     .catch(() => {
       document.getElementById('fornecedor-select').innerHTML = '<option value="">Falha ao carregar fornecedores</option>';
