@@ -83,7 +83,11 @@
       </div>
 
       <div class="row2">
-        <div class="field"><label id="horas-label">Horas consumidas <span style="color:var(--muted); font-weight:400;">— opcional</span></label><input type="number" step="0.01" name="horas_consumidas" id="horas-consumidas" placeholder="ex: 12.5"></div>
+        <div class="field">
+          <label id="horas-label">Horas consumidas <span style="color:var(--muted); font-weight:400;">— opcional</span></label>
+          <input type="text" inputmode="numeric" id="horas-consumidas-display" placeholder="HH:MM — ex: 41:28">
+          <input type="hidden" name="horas_consumidas" id="horas-consumidas">
+        </div>
         <div class="field"><label id="valor-label">Valor (R$)</label><input type="text" inputmode="decimal" class="money-input" name="valor" id="valor" required placeholder="R$ 0,00"></div>
       </div>
       <div class="hint" id="hint-calculo-horas" style="display:none; margin-top:-10px; margin-bottom:18px;">Valor calculado automaticamente (horas × R$/h do contrato) — ainda dá pra ajustar à mão, se precisar.</div>
@@ -111,7 +115,31 @@
   }
   document.getElementById('valor').addEventListener('input', (e) => aplicarMascaraMoeda(e.target));
   document.getElementById('despesa-variavel').addEventListener('input', (e) => { aplicarMascaraMoeda(e.target); recalcularTotalFixo(); });
-  document.getElementById('horas-consumidas').addEventListener('input', recalcularValorPorHoras);
+
+  // Máscara HH:MM (igual apontamento de horas na planilha) — os últimos
+  // 2 dígitos digitados são sempre os minutos, o resto vira hora.
+  function aplicarMascaraHoras(el) {
+    let digits = el.value.replace(/\D/g, '').slice(0, 6);
+    if (digits === '') { el.value = ''; return; }
+    let minutos = digits.slice(-2).padStart(2, '0');
+    if (Number(minutos) > 59) minutos = '59';
+    const horas = digits.slice(0, -2) || '0';
+    el.value = `${horas}:${minutos}`;
+  }
+  // Converte "HH:MM" pra hora decimal (ex: 41:28 -> 41,4667), mesma
+  // fórmula da planilha (HH:MM em decimal = HH + MM/60).
+  function horasParaDecimal(hhmm) {
+    if (!hhmm || !hhmm.includes(':')) return 0;
+    const [h, m] = hhmm.split(':').map(Number);
+    return (h || 0) + (m || 0) / 60;
+  }
+
+  const horasDisplay = document.getElementById('horas-consumidas-display');
+  horasDisplay.addEventListener('input', () => {
+    aplicarMascaraHoras(horasDisplay);
+    document.getElementById('horas-consumidas').value = horasParaDecimal(horasDisplay.value).toFixed(2);
+    recalcularValorPorHoras();
+  });
 
   let contratosAtivos = [];
 
@@ -138,7 +166,10 @@
     const contrato = contratosAtivos.find(c => String(c.id) === String(contratoId));
     if (!contrato || contrato.tipo !== 'hora_aberta') return;
 
-    const horas = parseFloat(document.getElementById('horas-consumidas').value) || 0;
+    // Usa a hora decimal com precisão total (não a versão arredondada em
+    // 2 casas que vai pro banco) — evita diferença de centavos por causa
+    // de arredondamento prematuro (mesmo cuidado que a planilha tem).
+    const horas = horasParaDecimal(document.getElementById('horas-consumidas-display').value);
     const total = horas * Number(contrato.valor_hora || 0);
     document.getElementById('valor').value = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits: 2});
   }
@@ -162,6 +193,7 @@
       hintHoras.style.display = 'block';
       valorLabel.textContent = `Valor (R$) — R$ ${Number(contrato.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}/h`;
       document.getElementById('horas-consumidas').value = '';
+      document.getElementById('horas-consumidas-display').value = '';
       document.getElementById('valor').value = '';
     } else {
       bloco.style.display = 'none';
