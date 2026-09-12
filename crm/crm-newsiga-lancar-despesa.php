@@ -54,12 +54,13 @@
 
 <div class="wrap">
   <div class="page-head">
-    <div class="eyebrow">lançamento manual — fase 1</div>
-    <h1>Lançar <em>despesa</em> de uma competência.</h1>
-    <p class="page-sub">Sem cálculo automático via Movidesk ainda — informe o valor já calculado (ou combinado) pra este fornecedor, neste mês.</p>
+    <div class="eyebrow" id="eyebrow">lançamento manual — fase 1</div>
+    <h1 id="titulo">Lançar <em>despesa</em> de uma competência.</h1>
+    <p class="page-sub" id="page-sub">Sem cálculo automático via Movidesk ainda — informe o valor já calculado (ou combinado) pra este fornecedor, neste mês.</p>
   </div>
 
   <form id="despesa-form">
+    <input type="hidden" name="id" id="despesa-id">
     <div class="section">
       <div class="field">
         <label>Contrato de fornecedor</label>
@@ -116,15 +117,22 @@
   document.getElementById('valor').addEventListener('input', (e) => aplicarMascaraMoeda(e.target));
   document.getElementById('despesa-variavel').addEventListener('input', (e) => { aplicarMascaraMoeda(e.target); recalcularTotalFixo(); });
 
-  // Máscara HH:MM (igual apontamento de horas na planilha) — os últimos
-  // 2 dígitos digitados são sempre os minutos, o resto vira hora.
-  function aplicarMascaraHoras(el) {
-    let digits = el.value.replace(/\D/g, '').slice(0, 6);
-    if (digits === '') { el.value = ''; return; }
-    let minutos = digits.slice(-2).padStart(2, '0');
-    if (Number(minutos) > 59) minutos = '59';
-    const horas = digits.slice(0, -2) || '0';
+  // Máscara HH:MM (igual apontamento de horas na planilha). Guarda os
+  // dígitos brutos digitados num atributo à parte (dataset.raw) em vez
+  // de re-extrair do texto já formatado — senão o zero de preenchimento
+  // dos minutos (ex: "4" -> "04") vira um dígito "de verdade" na
+  // próxima tecla, e o valor cresce sozinho (bug: "41:28" virava
+  // "0041:28" depois de mais teclas).
+  function renderizarHoras(el) {
+    const raw = el.dataset.raw || '';
+    if (raw === '') { el.value = ''; return; }
+    const minutos = raw.slice(-2).padStart(2, '0');
+    const horas = raw.slice(0, -2) || '0';
     el.value = `${horas}:${minutos}`;
+  }
+  function definirRawHoras(el, raw) {
+    el.dataset.raw = raw.replace(/\D/g, '').slice(0, 6);
+    renderizarHoras(el);
   }
   // Converte "HH:MM" pra hora decimal (ex: 41:28 -> 41,4667), mesma
   // fórmula da planilha (HH:MM em decimal = HH + MM/60).
@@ -135,10 +143,21 @@
   }
 
   const horasDisplay = document.getElementById('horas-consumidas-display');
-  horasDisplay.addEventListener('input', () => {
-    aplicarMascaraHoras(horasDisplay);
-    document.getElementById('horas-consumidas').value = horasParaDecimal(horasDisplay.value).toFixed(2);
-    recalcularValorPorHoras();
+  horasDisplay.dataset.raw = '';
+  horasDisplay.addEventListener('keydown', (e) => {
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      definirRawHoras(horasDisplay, (horasDisplay.dataset.raw || '') + e.key);
+      document.getElementById('horas-consumidas').value = horasParaDecimal(horasDisplay.value).toFixed(2);
+      recalcularValorPorHoras();
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      definirRawHoras(horasDisplay, (horasDisplay.dataset.raw || '').slice(0, -1));
+      document.getElementById('horas-consumidas').value = horasParaDecimal(horasDisplay.value).toFixed(2);
+      recalcularValorPorHoras();
+    } else if (!['Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      e.preventDefault();
+    }
   });
 
   let contratosAtivos = [];
@@ -193,7 +212,7 @@
       hintHoras.style.display = 'block';
       valorLabel.textContent = `Valor (R$) — R$ ${Number(contrato.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/h`;
       document.getElementById('horas-consumidas').value = '';
-      document.getElementById('horas-consumidas-display').value = '';
+      definirRawHoras(document.getElementById('horas-consumidas-display'), '');
       document.getElementById('valor').value = '';
     } else {
       bloco.style.display = 'none';
@@ -242,6 +261,53 @@
       document.getElementById('contrato-select').innerHTML = '<option value="">Falha ao carregar contratos</option>';
     });
 
+  // ---- Modo edição (?id=) ----
+  const despesaIdEditando = new URLSearchParams(window.location.search).get('id');
+  const ehEdicaoDespesa = !!despesaIdEditando;
+
+  if (ehEdicaoDespesa) {
+    document.getElementById('despesa-id').value = despesaIdEditando;
+    document.getElementById('eyebrow').textContent = 'editar lançamento';
+    document.getElementById('titulo').innerHTML = 'Editando uma despesa <em>já lançada</em>.';
+    document.getElementById('page-sub').textContent = 'O contrato não muda aqui — pra mover pra outro contrato, exclua e lance de novo.';
+    document.getElementById('submit-btn').textContent = 'Salvar alterações';
+
+    fetch(`buscar-despesa-competencia.php?id=${despesaIdEditando}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.sucesso) { alert(data.erro || 'Despesa não encontrada.'); return; }
+        const d = data.despesa;
+
+        const select = document.getElementById('contrato-select');
+        select.innerHTML = `<option value="${d.contrato_fornecedor_id}" selected>${d.fornecedor_nome} — ${d.contrato_descricao || d.contrato_tipo}</option>`;
+        select.disabled = true;
+
+        // Garante que a função de cálculo automático (que procura o
+        // contrato em contratosAtivos) encontra este contrato mesmo que
+        // ele já não esteja mais "ativo" hoje.
+        if (!contratosAtivos.some(c => String(c.id) === String(d.contrato_fornecedor_id))) {
+          contratosAtivos.push({ id: d.contrato_fornecedor_id, tipo: d.contrato_tipo, valor_hora: d.valor_hora });
+        }
+
+        document.getElementById('competencia').value = d.competencia;
+        document.getElementById('vencimento').value = d.vencimento;
+        document.getElementById('valor').value = 'R$ ' + Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        if (d.horas_consumidas) {
+          const horasInt = Math.floor(d.horas_consumidas);
+          const minutos = Math.round((d.horas_consumidas - horasInt) * 60);
+          definirRawHoras(document.getElementById('horas-consumidas-display'), `${horasInt}${String(minutos).padStart(2, '0')}`);
+          document.getElementById('horas-consumidas').value = d.horas_consumidas;
+        }
+
+        if (d.contrato_tipo === 'hora_aberta') {
+          document.getElementById('hint-calculo-horas').style.display = 'block';
+          document.getElementById('valor-label').textContent = `Valor (R$) — R$ ${Number(d.valor_hora || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}/h`;
+        }
+      })
+      .catch(() => alert('Falha ao carregar dados da despesa.'));
+  }
+
   document.getElementById('despesa-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
@@ -258,7 +324,8 @@
       const formData = new FormData(e.target);
       valorEl.value = valorOriginal;
 
-      const resp = await fetch('salvar-despesa-competencia.php', { method: 'POST', body: formData });
+      const endpoint = ehEdicaoDespesa ? 'atualizar-despesa-competencia.php' : 'salvar-despesa-competencia.php';
+      const resp = await fetch(endpoint, { method: 'POST', body: formData });
       const data = await resp.json();
 
       if (!resp.ok) {
@@ -266,7 +333,7 @@
         msg.textContent = (data.detalhes ? data.detalhes.join(' ') : data.erro) || 'Erro ao salvar.';
       } else {
         msg.className = 'form-msg ok';
-        msg.textContent = 'Despesa lançada com sucesso.';
+        msg.textContent = ehEdicaoDespesa ? 'Despesa atualizada com sucesso.' : 'Despesa lançada com sucesso.';
         setTimeout(() => { window.location.href = 'crm-newsiga-despesas.php'; }, 900);
       }
     } catch (err) {
@@ -274,7 +341,7 @@
       msg.textContent = 'Falha de conexão com o servidor.';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Lançar despesa';
+      btn.textContent = ehEdicaoDespesa ? 'Salvar alterações' : 'Lançar despesa';
     }
   });
 </script>

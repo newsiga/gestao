@@ -187,7 +187,10 @@
         `<option value="${s}" ${s === d.status ? 'selected' : ''}>${statusLabels[s]}</option>`
       ).join('');
       const origemPill = d.origem === 'manual' ? '<span class="origem-pill">· manual</span>' : '<span class="origem-pill">· Movidesk</span>';
-      const botaoExcluir = d.origem === 'manual'
+      const linkEditar = d.origem === 'manual'
+        ? `<a href="crm-newsiga-lancar-despesa.php?id=${d.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none; margin-right:12px;">editar</a>`
+        : '';
+      const botaoExcluir = (d.origem === 'manual' && d.status !== 'pago')
         ? `<a href="#" class="excluir-link" data-id="${d.id}" style="color:var(--red); font-weight:600; font-size:13px; text-decoration:none;">excluir</a>`
         : '';
       return `
@@ -200,7 +203,7 @@
             <select class="status-select" data-id="${d.id}" data-atual="${d.status}">${opcoes}</select>
             <div class="row-msg" id="msg-${d.id}"></div>
           </td>
-          <td>${botaoExcluir}</td>
+          <td>${linkEditar}${botaoExcluir}</td>
         </tr>`;
     }).join('');
 
