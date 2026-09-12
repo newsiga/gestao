@@ -40,6 +40,8 @@
   th{text-align:left; font-family:var(--font-ui); font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:700; padding:14px 22px; border-bottom:1px solid var(--border);}
   td{padding:16px 22px; border-bottom:1px solid var(--border); vertical-align:middle;}
   tr:last-child td{border-bottom:none;}
+  tr.fornecedor-row{cursor:pointer;}
+  tr.fornecedor-row:hover{background:#faf9f6;}
   td.name{font-family:var(--font-display); font-weight:700;}
   .tipo-badge{font-family:var(--font-ui); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; background:var(--card); color:var(--forest); white-space:nowrap;}
   .badge{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; background:var(--card); color:var(--forest); white-space:nowrap; display:inline-block;}
@@ -121,14 +123,20 @@
       const badgeTexto = qtd === 0 ? 'nenhum ativo' : `${qtd} contrato${qtd === 1 ? '' : 's'}`;
       const movideskPill = f.movidesk_technician_name ? '<span class="movidesk-pill">· ' + f.movidesk_technician_name + ' no Movidesk</span>' : '';
       return `
-        <tr>
+        <tr class="fornecedor-row" data-id="${f.id}">
           <td class="name">${f.nome}</td>
           <td><span class="tipo-badge">${tipoLabels[f.tipo] || f.tipo}</span>${movideskPill}</td>
           <td><span class="${badgeClasse}">${badgeTexto}</span></td>
           <td><span class="status-pill ${f.status}">${f.status}</span></td>
-          <td><a href="crm-newsiga-cadastro-fornecedor.php?id=${f.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none;">editar →</a></td>
+          <td style="color:var(--forest); font-weight:600; font-size:13px;">ver detalhes →</td>
         </tr>`;
     }).join('');
+
+    document.querySelectorAll('.fornecedor-row').forEach(row => {
+      row.addEventListener('click', () => {
+        window.location.href = `crm-newsiga-fornecedor-detalhe.php?id=${row.dataset.id}`;
+      });
+    });
   }
 
   document.getElementById('busca').addEventListener('input', (e) => renderizar(e.target.value));
