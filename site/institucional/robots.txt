@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /area-do-cliente/admin/
+Sitemap: https://newsiga.com.br/sitemap.xml
