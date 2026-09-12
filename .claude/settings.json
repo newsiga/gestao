@@ -1,0 +1,8 @@
+{
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Read-only SSH commands to the Newsiga production server (hgnew010@br396.hostgator.com.br, port 2222) that only inspect state and never modify it - e.g. `SHOW CREATE TABLE`, `SELECT` queries via php -r using getDb()->query()/prepare()->execute(), `ls`/`find`/`cat`/`tail` on files and logs, `git status`/`git log`/`git diff` inside ~/repos/gestao. Always allow these without asking, since they only read data. Never extend this to ALTER, DROP, CREATE, TRUNCATE, INSERT, UPDATE, DELETE, git push/reset/clean, rsync, or any command that writes, deletes, or deploys - those still require confirmation every time, even if embedded inside the same SSH invocation as a read."
+    ]
+  }
+}

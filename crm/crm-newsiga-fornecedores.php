@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM Newsiga — Clientes</title>
+<title>CRM Newsiga — Fornecedores</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -22,7 +22,7 @@
   nav .wrap{display:flex; align-items:center; justify-content:space-between;}
   .logo{font-family:var(--font-display); font-weight:800; font-size:19px; color:var(--forest); text-decoration:none;}
   .logo span{color:var(--muted); font-weight:600; font-size:13px; margin-left:8px;}
-  .nav-links{display:flex; gap:26px; font-size:13.5px; color:var(--muted); font-weight:600;}
+  .nav-links{display:flex; gap:22px; font-size:13.5px; color:var(--muted); font-weight:600;}
   .nav-links a{color:var(--muted); text-decoration:none;}
   .nav-links a.active{color:var(--forest);}
   .btn-nav{font-family:var(--font-ui); font-size:13px; font-weight:700; background:var(--forest); color:var(--white); padding:10px 18px; border-radius:8px; text-decoration:none;}
@@ -40,13 +40,14 @@
   th{text-align:left; font-family:var(--font-ui); font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:700; padding:14px 22px; border-bottom:1px solid var(--border);}
   td{padding:16px 22px; border-bottom:1px solid var(--border); vertical-align:middle;}
   tr:last-child td{border-bottom:none;}
-  tr.client-row{cursor:pointer;}
-  tr.client-row:hover{background:#faf9f6;}
   td.name{font-family:var(--font-display); font-weight:700;}
-  .cnpj{color:var(--muted); font-size:12.5px;}
+  .tipo-badge{font-family:var(--font-ui); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; background:var(--card); color:var(--forest); white-space:nowrap;}
   .badge{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; background:var(--card); color:var(--forest); white-space:nowrap; display:inline-block;}
   .badge.zero{color:var(--muted);}
-  .asaas-pill{font-size:11px; font-weight:600; color:#2f5c3f; margin-left:8px;}
+  .movidesk-pill{font-size:11px; font-weight:600; color:#2f5c3f; margin-left:8px;}
+  .status-pill{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:5px 12px; border-radius:20px; white-space:nowrap; display:inline-block;}
+  .status-pill.ativo{background:#dbe9d8; color:#2f5c3f;}
+  .status-pill.inativo{background:#e2e0d8; color:var(--muted);}
 
   .empty-state{padding:60px 22px; text-align:center; color:var(--muted); font-size:14px;}
 
@@ -64,88 +65,83 @@
     <a class="logo" href="crm-newsiga-painel.php">crm<span>.newsiga</span></a>
     <div class="nav-links">
       <a href="crm-newsiga-painel.php">Painel</a>
-      <a href="crm-newsiga-clientes.php" class="active">Clientes</a>
+      <a href="crm-newsiga-clientes.php">Clientes</a>
       <a href="crm-newsiga-contratos.php">Contratos</a>
-      <a href="crm-newsiga-fornecedores.php">Fornecedores</a>
+      <a href="crm-newsiga-fornecedores.php" class="active">Fornecedores</a>
       <a href="crm-newsiga-despesas.php">Despesas</a>
       <a href="crm-newsiga-prospects.php">Prospects</a>
     </div>
-    <a class="btn-nav" href="crm-newsiga-cadastro-cliente.php">+ Novo cliente</a>
+    <a class="btn-nav" href="crm-newsiga-cadastro-fornecedor.php">+ Novo fornecedor</a>
   </div>
 </nav>
 
 <div class="wrap">
   <div class="page-head">
     <div>
-      <div class="eyebrow">todos os clientes</div>
-      <h1>Cada cliente, com seus <em>contratos</em> à mão.</h1>
+      <div class="eyebrow">todos os fornecedores</div>
+      <h1>Quem a Newsiga <em>paga</em>, num só lugar.</h1>
     </div>
   </div>
 
   <div class="search-row">
-    <input type="text" class="search-input" id="busca" placeholder="Buscar por nome ou CNPJ...">
+    <input type="text" class="search-input" id="busca" placeholder="Buscar por nome...">
   </div>
 
   <div class="panel">
     <table>
       <thead>
-        <tr><th>Cliente</th><th>Contratos ativos</th><th></th></tr>
+        <tr><th>Fornecedor</th><th>Tipo</th><th>Contratos</th><th>Status</th><th></th></tr>
       </thead>
-      <tbody id="clientes-tbody">
-        <tr><td colspan="3" style="color:var(--muted); font-style:italic; padding:24px;">Carregando clientes...</td></tr>
+      <tbody id="fornecedores-tbody">
+        <tr><td colspan="5" style="color:var(--muted); font-style:italic; padding:24px;">Carregando fornecedores...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
 <script>
-  let todosClientes = [];
+  const tipoLabels = { operacional: 'operacional', fixo: 'fixo/recorrente' };
+  let todosFornecedores = [];
 
   function renderizar(filtro) {
-    const tbody = document.getElementById('clientes-tbody');
+    const tbody = document.getElementById('fornecedores-tbody');
     const termo = (filtro || '').trim().toLowerCase();
     const lista = termo
-      ? todosClientes.filter(c =>
-          (c.nome || '').toLowerCase().includes(termo) ||
-          (c.cnpj || '').toLowerCase().includes(termo))
-      : todosClientes;
+      ? todosFornecedores.filter(f => (f.nome || '').toLowerCase().includes(termo))
+      : todosFornecedores;
 
     if (lista.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">Nenhum cliente' + (termo ? ' encontrado.' : ' cadastrado ainda.') + '</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Nenhum fornecedor' + (termo ? ' encontrado.' : ' cadastrado ainda.') + '</div></td></tr>';
       return;
     }
 
-    tbody.innerHTML = lista.map(c => {
-      const qtd = Number(c.contratos_ativos || 0);
+    tbody.innerHTML = lista.map(f => {
+      const qtd = Number(f.contratos_ativos || 0);
       const badgeClasse = qtd === 0 ? 'badge zero' : 'badge';
       const badgeTexto = qtd === 0 ? 'nenhum ativo' : `${qtd} contrato${qtd === 1 ? '' : 's'}`;
-      const asaasPill = c.asaas_customer_id ? '<span class="asaas-pill">· no ASAAS</span>' : '';
+      const movideskPill = f.movidesk_technician_name ? '<span class="movidesk-pill">· ' + f.movidesk_technician_name + ' no Movidesk</span>' : '';
       return `
-        <tr class="client-row" data-id="${c.id}">
-          <td class="name">${c.nome}${c.cnpj ? `<div class="cnpj">${c.cnpj}</div>` : ''}</td>
-          <td><span class="${badgeClasse}">${badgeTexto}</span>${asaasPill}</td>
-          <td style="color:var(--forest); font-weight:600; font-size:13px;">ver detalhes →</td>
+        <tr>
+          <td class="name">${f.nome}</td>
+          <td><span class="tipo-badge">${tipoLabels[f.tipo] || f.tipo}</span>${movideskPill}</td>
+          <td><span class="${badgeClasse}">${badgeTexto}</span></td>
+          <td><span class="status-pill ${f.status}">${f.status}</span></td>
+          <td><a href="crm-newsiga-cadastro-fornecedor.php?id=${f.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none;">editar →</a></td>
         </tr>`;
     }).join('');
-
-    document.querySelectorAll('.client-row').forEach(row => {
-      row.addEventListener('click', () => {
-        window.location.href = `crm-newsiga-cliente-detalhe.php?id=${row.dataset.id}`;
-      });
-    });
   }
 
   document.getElementById('busca').addEventListener('input', (e) => renderizar(e.target.value));
 
-  fetch('listar-clientes.php')
+  fetch('listar-fornecedores.php')
     .then(r => r.json())
     .then(data => {
-      todosClientes = (data.sucesso && data.clientes) ? data.clientes : [];
+      todosFornecedores = (data.sucesso && data.fornecedores) ? data.fornecedores : [];
       renderizar('');
     })
     .catch(() => {
-      document.getElementById('clientes-tbody').innerHTML =
-        '<tr><td colspan="3" style="color:var(--red); padding:24px;">Falha ao carregar clientes do servidor.</td></tr>';
+      document.getElementById('fornecedores-tbody').innerHTML =
+        '<tr><td colspan="5" style="color:var(--red); padding:24px;">Falha ao carregar fornecedores do servidor.</td></tr>';
     });
 </script>
 </body>

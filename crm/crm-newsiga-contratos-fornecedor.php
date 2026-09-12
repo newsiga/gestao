@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM Newsiga — Contratos</title>
+<title>CRM Newsiga — Contratos de Fornecedor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -22,7 +22,7 @@
   nav .wrap{display:flex; align-items:center; justify-content:space-between;}
   .logo{font-family:var(--font-display); font-weight:800; font-size:19px; color:var(--forest); text-decoration:none;}
   .logo span{color:var(--muted); font-weight:600; font-size:13px; margin-left:8px;}
-  .nav-links{display:flex; gap:26px; font-size:13.5px; color:var(--muted); font-weight:600;}
+  .nav-links{display:flex; gap:22px; font-size:13.5px; color:var(--muted); font-weight:600;}
   .nav-links a{color:var(--muted); text-decoration:none;}
   .nav-links a.active{color:var(--forest);}
   .btn-nav{font-family:var(--font-ui); font-size:13px; font-weight:700; background:var(--forest); color:var(--white); padding:10px 18px; border-radius:8px; text-decoration:none;}
@@ -32,13 +32,6 @@
   h1 em{font-family:var(--font-italic); font-style:italic; font-weight:400;}
 
   .filters{display:flex; gap:8px; margin:28px 0 20px; flex-wrap:wrap;}
-
-  .resumo-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:28px;}
-  .resumo-card{background:var(--white); border:1px solid var(--border); border-radius:12px; padding:22px;}
-  .resumo-card .label{font-family:var(--font-ui); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:12px;}
-  .resumo-card .value{font-family:var(--font-display); font-size:24px; font-weight:800;}
-  .resumo-card .delta{font-size:12.5px; color:var(--muted); margin-top:6px;}
-  @media (max-width:860px){.resumo-cards{grid-template-columns:1fr;}}
   .filter-btn{font-family:var(--font-ui); font-size:13px; font-weight:600; padding:9px 16px; border-radius:20px; border:1px solid var(--border); background:var(--white); color:var(--muted); cursor:pointer;}
   .filter-btn.active{background:var(--forest); color:var(--white); border-color:var(--forest);}
 
@@ -47,15 +40,7 @@
   th{text-align:left; font-family:var(--font-ui); font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:700; padding:14px 22px; border-bottom:1px solid var(--border);}
   td{padding:16px 22px; border-bottom:1px solid var(--border); vertical-align:middle;}
   tr:last-child td{border-bottom:none;}
-  td.name{font-family:var(--font-display); font-weight:700;}
   .tipo-badge{font-family:var(--font-ui); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; background:var(--card); color:var(--forest); white-space:nowrap;}
-
-  .status-pill{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:5px 12px; border-radius:20px; white-space:nowrap; display:inline-block;}
-  .status-pill.rascunho{background:#f3e6c9; color:#8a6414;}
-  .status-pill.aprovado{background:#dbe4f3; color:#2f4d7c;}
-  .status-pill.ativo{background:#dbe9d8; color:#2f5c3f;}
-  .status-pill.concluido{background:#d6e8f5; color:#1f5c85;}
-  .status-pill.encerrado{background:#e2e0d8; color:var(--muted);}
 
   .status-select{font-family:var(--font-ui); font-size:12.5px; font-weight:600; color:var(--forest); background:var(--white); border:1px solid var(--border); border-radius:6px; padding:6px 10px; cursor:pointer;}
   .row-msg{font-size:11.5px; color:var(--muted); margin-top:4px;}
@@ -64,13 +49,10 @@
 
   .empty-state{padding:60px 22px; text-align:center; color:var(--muted); font-size:14px;}
 
-  tr.group-header td{background:var(--card); font-family:var(--font-display); font-weight:700; font-size:13.5px; padding:12px 22px; border-bottom:1px solid var(--border);}
-  tr.group-header{cursor:pointer;}
+  tr.group-header td{background:var(--card); font-family:var(--font-display); font-weight:700; font-size:13.5px; padding:12px 22px; border-bottom:1px solid var(--border); cursor:pointer;}
   tr.group-header:hover td{background:#ddddd4;}
-  tr.group-header td a{color:var(--forest); text-decoration:none;}
-  tr.group-header td a:hover{text-decoration:underline;}
   tr.group-header .group-count{color:var(--muted); font-weight:600; font-size:12px; margin-left:8px;}
-  tr.group-header .toggle-arrow{display:inline-block; width:14px; color:var(--muted); font-size:11px; transition:transform .1s;}
+  tr.group-header .toggle-arrow{display:inline-block; width:14px; color:var(--muted); font-size:11px;}
 
   @media (max-width:860px){
     .nav-links{display:none;}
@@ -87,45 +69,26 @@
     <div class="nav-links">
       <a href="crm-newsiga-painel.php">Painel</a>
       <a href="crm-newsiga-clientes.php">Clientes</a>
-      <a href="crm-newsiga-contratos.php" class="active">Contratos</a>
+      <a href="crm-newsiga-contratos.php">Contratos</a>
       <a href="crm-newsiga-fornecedores.php">Fornecedores</a>
       <a href="crm-newsiga-despesas.php">Despesas</a>
       <a href="crm-newsiga-prospects.php">Prospects</a>
     </div>
-    <a class="btn-nav" href="crm-newsiga-cadastro-contrato.php">+ Novo contrato</a>
+    <a class="btn-nav" href="crm-newsiga-cadastro-contrato-fornecedor.php">+ Novo contrato</a>
   </div>
 </nav>
 
 <div class="wrap">
   <div class="page-head">
     <div>
-      <div class="eyebrow">todos os contratos</div>
+      <div class="eyebrow">todos os contratos de fornecedor</div>
       <h1>Rascunho vira <em>ativo</em>, um clique de cada vez.</h1>
-    </div>
-  </div>
-
-  <div class="resumo-cards" id="resumo-cards">
-    <div class="resumo-card">
-      <div class="label">Valor fixo — total mensal</div>
-      <div class="value" id="resumo-fixo">—</div>
-      <div class="delta" id="resumo-fixo-delta"></div>
-    </div>
-    <div class="resumo-card">
-      <div class="label">Projeto parcelado — a receber</div>
-      <div class="value" id="resumo-parcelado">—</div>
-      <div class="delta" id="resumo-parcelado-delta"></div>
-    </div>
-    <div class="resumo-card">
-      <div class="label">Banco c/ mínimo — total mensal</div>
-      <div class="value" id="resumo-minimo">—</div>
-      <div class="delta" id="resumo-minimo-delta"></div>
     </div>
   </div>
 
   <div class="filters" id="filters">
     <button class="filter-btn active" data-status="">Todos</button>
     <button class="filter-btn" data-status="rascunho">Rascunho</button>
-    <button class="filter-btn" data-status="aprovado">Aprovado</button>
     <button class="filter-btn" data-status="ativo">Ativo</button>
     <button class="filter-btn" data-status="concluido">Concluído</button>
     <button class="filter-btn" data-status="encerrado">Encerrado</button>
@@ -149,50 +112,17 @@
     hora_aberta: 'hora aberta',
     banco_horas_minimo: 'banco c/ mínimo',
     banco_horas_consumo: 'banco s/ mínimo',
-    projeto_parcelado: 'projeto parcelado',
   };
-  const statusLabels = { rascunho: 'Rascunho', aprovado: 'Aprovado', ativo: 'Ativo', concluido: 'Concluído', encerrado: 'Encerrado' };
+  const statusLabels = { rascunho: 'Rascunho', ativo: 'Ativo', concluido: 'Concluído', encerrado: 'Encerrado' };
 
-  // Próximos status possíveis a partir do atual — espelha a regra do
-  // atualizar-status-contrato.php, só que aqui é pra montar o <select>.
   const proximosStatus = {
-    rascunho: ['rascunho', 'aprovado', 'encerrado'],
-    aprovado: ['aprovado', 'rascunho', 'ativo', 'encerrado'],
+    rascunho: ['rascunho', 'ativo', 'encerrado'],
     ativo: ['ativo', 'concluido', 'encerrado'],
     concluido: ['concluido', 'ativo', 'encerrado'],
     encerrado: ['encerrado'],
   };
 
   const fmt = (v) => v === null || v === undefined ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2});
-
-  function calcularResumo() {
-    // Só considera contratos ainda relevantes — encerrados não entram no
-    // total "atual", pra não inflar o número com coisa que já acabou.
-    const ativos = todosContratos.filter(c => c.status !== 'encerrado' && c.status !== 'concluido');
-
-    const totalFixo = ativos
-      .filter(c => c.tipo === 'mensalidade_fixa')
-      .reduce((soma, c) => soma + Number(c.valor || 0), 0);
-    const qtdFixo = ativos.filter(c => c.tipo === 'mensalidade_fixa').length;
-
-    const contratosParcelados = ativos.filter(c => c.tipo === 'projeto_parcelado');
-    const totalParcelado = contratosParcelados.reduce((soma, c) => soma + Number(c.valor_parcelas_total || 0), 0);
-    const pendenteParcelado = contratosParcelados.reduce((soma, c) => soma + Number(c.valor_parcelas_pendente || 0), 0);
-
-    const totalMinimo = ativos
-      .filter(c => c.tipo === 'banco_horas_minimo')
-      .reduce((soma, c) => soma + Number(c.valor || 0), 0);
-    const qtdMinimo = ativos.filter(c => c.tipo === 'banco_horas_minimo').length;
-
-    document.getElementById('resumo-fixo').textContent = fmt(totalFixo);
-    document.getElementById('resumo-fixo-delta').textContent = `${qtdFixo} contrato${qtdFixo === 1 ? '' : 's'}`;
-
-    document.getElementById('resumo-parcelado').textContent = fmt(pendenteParcelado);
-    document.getElementById('resumo-parcelado-delta').textContent = `${fmt(totalParcelado)} no total dos projetos`;
-
-    document.getElementById('resumo-minimo').textContent = fmt(totalMinimo);
-    document.getElementById('resumo-minimo-delta').textContent = `${qtdMinimo} contrato${qtdMinimo === 1 ? '' : 's'} (mínimo garantido)`;
-  }
 
   function condicoesDe(c) {
     if (c.tipo === 'banco_horas_minimo') {
@@ -203,7 +133,7 @@
     }
     if (c.tipo === 'hora_aberta') return `${fmt(c.valor_hora)}/h`;
     if (c.tipo === 'mensalidade_fixa') return fmt(c.valor);
-    return 'ver parcelas';
+    return '—';
   }
 
   let todosContratos = [];
@@ -218,20 +148,17 @@
       return;
     }
 
-    // Agrupa por cliente, preservando a ordem em que cada cliente apareceu
-    // pela primeira vez na lista (já vem ordenada por criado_em DESC).
     const grupos = [];
-    const indicePorCliente = {};
+    const indicePorFornecedor = {};
     lista.forEach(c => {
-      const chave = c.cliente_id;
-      if (!(chave in indicePorCliente)) {
-        indicePorCliente[chave] = grupos.length;
-        grupos.push({ cliente_id: c.cliente_id, cliente_nome: c.cliente_nome, contratos: [] });
+      const chave = c.fornecedor_id;
+      if (!(chave in indicePorFornecedor)) {
+        indicePorFornecedor[chave] = grupos.length;
+        grupos.push({ fornecedor_id: c.fornecedor_id, fornecedor_nome: c.fornecedor_nome, contratos: [] });
       }
-      grupos[indicePorCliente[chave]].contratos.push(c);
+      grupos[indicePorFornecedor[chave]].contratos.push(c);
     });
-    // Dentro de cada grupo grande, ordena por nome do cliente pra navegação previsível
-    grupos.sort((a, b) => a.cliente_nome.localeCompare(b.cliente_nome, 'pt-BR'));
+    grupos.sort((a, b) => a.fornecedor_nome.localeCompare(b.fornecedor_nome, 'pt-BR'));
 
     tbody.innerHTML = grupos.map(grupo => {
       const linhasContrato = grupo.contratos.map(c => {
@@ -241,11 +168,8 @@
         const botaoExcluir = c.status === 'rascunho'
           ? `<a href="#" class="excluir-link" data-id="${c.id}" style="color:var(--red); font-weight:600; font-size:13px; text-decoration:none; margin-left:14px;">excluir</a>`
           : '';
-        const linkConfirmacao = c.status === 'aprovado'
-          ? `<a href="crm-newsiga-confirmacao-asaas.php?id=${c.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none; margin-left:14px;">continuar confirmação</a>`
-          : '';
         return `
-          <tr data-id="${c.id}" class="group-body" data-group="${grupo.cliente_id}" style="display:none;">
+          <tr data-id="${c.id}" class="group-body" data-group="${grupo.fornecedor_id}" style="display:none;">
             <td style="color:var(--muted);">${c.descricao || '—'}</td>
             <td><span class="tipo-badge">${tipoLabels[c.tipo] || c.tipo}</span></td>
             <td>${condicoesDe(c)}</td>
@@ -253,25 +177,20 @@
               <select class="status-select" data-id="${c.id}" data-atual="${c.status}">${opcoes}</select>
               <div class="row-msg" id="msg-${c.id}"></div>
             </td>
-            <td><a href="crm-newsiga-editar-contrato.php?id=${c.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none;">editar</a>${linkConfirmacao}${botaoExcluir}</td>
+            <td>${botaoExcluir}</td>
           </tr>`;
       }).join('');
 
       const qtd = grupo.contratos.length;
       return `
-        <tr class="group-header" data-group="${grupo.cliente_id}">
-          <td colspan="5">
-            <span class="toggle-arrow">▸</span>
-            <a href="crm-newsiga-cliente-detalhe.php?id=${grupo.cliente_id}">${grupo.cliente_nome}</a>
-            <span class="group-count">${qtd} contrato${qtd === 1 ? '' : 's'}</span>
-          </td>
+        <tr class="group-header" data-group="${grupo.fornecedor_id}">
+          <td colspan="5"><span class="toggle-arrow">▸</span>${grupo.fornecedor_nome}<span class="group-count">${qtd} contrato${qtd === 1 ? '' : 's'}</span></td>
         </tr>
         ${linhasContrato}`;
     }).join('');
 
     document.querySelectorAll('.group-header').forEach(row => {
-      row.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') return; // deixa o link pro cliente navegar normalmente
+      row.addEventListener('click', () => {
         const grupoId = row.dataset.group;
         const abrindo = row.classList.toggle('open');
         row.querySelector('.toggle-arrow').textContent = abrindo ? '▾' : '▸';
@@ -285,19 +204,15 @@
       link.addEventListener('click', async (e) => {
         e.preventDefault();
         const contratoId = link.dataset.id;
-        const row = todosContratos.find(c => String(c.id) === String(contratoId));
-        const confirmou = confirm(`Excluir de vez o contrato de "${row ? row.cliente_nome : ''}" (${row ? row.descricao || row.tipo : ''})? Essa ação não pode ser desfeita.`);
+        const confirmou = confirm('Excluir de vez este contrato de fornecedor? Essa ação não pode ser desfeita.');
         if (!confirmou) return;
 
         try {
           const fd = new FormData();
           fd.append('contrato_id', contratoId);
-          const resp = await fetch('excluir-contrato.php', { method: 'POST', body: fd });
+          const resp = await fetch('excluir-contrato-fornecedor.php', { method: 'POST', body: fd });
           const data = await resp.json();
-          if (!resp.ok) {
-            alert(data.erro || 'Erro ao excluir.');
-            return;
-          }
+          if (!resp.ok) { alert(data.erro || 'Erro ao excluir.'); return; }
           todosContratos = todosContratos.filter(c => String(c.id) !== String(contratoId));
           renderizar();
         } catch (err) {
@@ -320,23 +235,17 @@
           const formData = new FormData();
           formData.append('contrato_id', contratoId);
           formData.append('status', novoStatus);
-          const resp = await fetch('atualizar-status-contrato.php', { method: 'POST', body: formData });
+          const resp = await fetch('atualizar-status-contrato-fornecedor.php', { method: 'POST', body: formData });
           const data = await resp.json();
 
           if (!resp.ok) {
             msg.className = 'row-msg error';
             msg.textContent = data.erro || 'Erro ao salvar.';
-            sel.value = statusAnterior; // reverte visualmente
+            sel.value = statusAnterior;
           } else {
             const item = todosContratos.find(c => String(c.id) === String(contratoId));
             if (item) item.status = novoStatus;
-
-            if (novoStatus === 'aprovado') {
-              window.location.href = `crm-newsiga-confirmacao-asaas.php?id=${contratoId}`;
-            } else {
-              renderizar(); // reconstrói a tabela — cada select passa a oferecer só as opções válidas pro novo status
-              calcularResumo();
-            }
+            renderizar();
           }
         } catch (err) {
           msg.className = 'row-msg error';
@@ -358,16 +267,15 @@
     });
   });
 
-  fetch('listar-contratos.php')
+  fetch('listar-contratos-fornecedor.php')
     .then(r => r.json())
     .then(data => {
       todosContratos = (data.sucesso && data.contratos) ? data.contratos : [];
       renderizar();
-      calcularResumo();
     })
     .catch(() => {
       document.getElementById('contratos-tbody').innerHTML =
-        '<tr><td colspan="6" style="color:var(--red); padding:24px;">Falha ao carregar contratos do servidor.</td></tr>';
+        '<tr><td colspan="5" style="color:var(--red); padding:24px;">Falha ao carregar contratos do servidor.</td></tr>';
     });
 </script>
 </body>

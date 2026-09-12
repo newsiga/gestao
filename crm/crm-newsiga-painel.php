@@ -134,6 +134,8 @@
       <a href="crm-newsiga-painel.php" class="active">Painel</a>
       <a href="crm-newsiga-clientes.php">Clientes</a>
       <a href="crm-newsiga-contratos.php">Contratos</a>
+      <a href="crm-newsiga-fornecedores.php">Fornecedores</a>
+      <a href="crm-newsiga-despesas.php">Despesas</a>
       <a href="crm-newsiga-prospects.php">Prospects</a>
     </div>
     <a class="btn-nav" href="crm-newsiga-cadastro-contrato.php">+ Novo contrato</a>
