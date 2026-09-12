@@ -31,6 +31,13 @@
   h1{font-family:var(--font-display); font-weight:800; font-size:32px; letter-spacing:-.01em;}
   h1 em{font-family:var(--font-italic); font-style:italic; font-weight:400;}
 
+  .period-bar{display:flex; align-items:center; gap:12px; margin-top:24px;}
+  .period-label{font-size:13px; color:var(--muted); font-weight:600;}
+  .period-select{
+    font-family:var(--font-display); font-weight:700; font-size:14.5px; color:var(--forest);
+    background:var(--white); border:1px solid var(--border); border-radius:8px; padding:10px 16px; cursor:pointer;
+  }
+
   .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:28px 0 20px;}
   .kpi{background:var(--white); border:1px solid var(--border); border-radius:12px; padding:22px;}
   .kpi .label{font-family:var(--font-ui); font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:12px;}
@@ -89,6 +96,11 @@
       <div class="eyebrow">despesas de fornecedor</div>
       <h1>Fluxo de caixa: receita <em>menos</em> despesa.</h1>
     </div>
+  </div>
+
+  <div class="period-bar">
+    <div class="period-label">Analisando a competência de</div>
+    <select class="period-select" id="period-select"></select>
   </div>
 
   <div class="kpis">
@@ -153,6 +165,27 @@
   const hojeISO = () => new Date().toISOString().slice(0, 10);
   const mesAtual = () => hojeISO().slice(0, 7);
 
+  // ---- Seletor de competência — mesmo padrão do painel (crm-newsiga-painel.php) ----
+  const nomesMesCompleto = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  function popularSeletorCompetencia() {
+    const select = document.getElementById('period-select');
+    const hoje = new Date();
+    const opcoes = [];
+    // 6 meses passados + mês atual + 1 mês futuro — janela maior que a
+    // do painel porque despesa manual às vezes é lançada com atraso
+    // (ex: reconstituir histórico), não só olhando pra frente.
+    for (let i = -6; i <= 1; i++) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+      const valor = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = `${nomesMesCompleto[d.getMonth()].charAt(0).toUpperCase() + nomesMesCompleto[d.getMonth()].slice(1)} · ${d.getFullYear()}`;
+      opcoes.push({ valor, label });
+    }
+    const competenciaAtual = mesAtual();
+    select.innerHTML = opcoes.map(o => `<option value="${o.valor}"${o.valor === competenciaAtual ? ' selected' : ''}>${o.label}</option>`).join('');
+    return competenciaAtual;
+  }
+  const competenciaInicial = popularSeletorCompetencia();
+
   const proximosStatus = {
     a_pagar: ['a_pagar', 'pago', 'atrasado'],
     atrasado: ['atrasado', 'pago'],
@@ -164,8 +197,8 @@
   let todasFaturas = [];
   let filtroAtivo = '';
 
-  function renderKpis() {
-    const mes = mesAtual();
+  function renderKpis(competencia) {
+    const mes = competencia || mesAtual();
     const hoje = hojeISO();
 
     const despesasDoMes = todasDespesas.filter(d => d.vencimento.slice(0, 7) === mes);
@@ -182,16 +215,20 @@
     document.getElementById('kpi-fluxo').textContent = fmt(fluxo);
     document.getElementById('kpi-fluxo-card').className = 'kpi ' + (fluxo >= 0 ? 'good' : 'bad');
 
+    // "Em atraso" fica de fora do filtro de competência — atraso é
+    // sempre em relação a hoje, não ao mês que está sendo analisado
+    // (mesma convenção do painel geral).
     const atrasadas = todasDespesas.filter(d => d.status === 'a_pagar' && d.vencimento < hoje || d.status === 'atrasado');
     document.getElementById('kpi-atraso').textContent = fmt(atrasadas.reduce((s, d) => s + Number(d.valor), 0));
     document.getElementById('kpi-atraso-delta').textContent = `${atrasadas.length} despesa${atrasadas.length === 1 ? '' : 's'}`;
   }
 
   // Visão consolidada: quanto cada fornecedor recebeu (ou vai receber)
-  // no mês, somando todos os contratos dele — o card de Despesa do mês
-  // já mostra o total geral, este quebra por fornecedor.
-  function renderCustoPorFornecedor() {
-    const mes = mesAtual();
+  // na competência selecionada, somando todos os contratos dele — o
+  // card de Despesa do mês já mostra o total geral, este quebra por
+  // fornecedor.
+  function renderCustoPorFornecedor(competencia) {
+    const mes = competencia || mesAtual();
     const despesasDoMes = todasDespesas.filter(d => d.vencimento.slice(0, 7) === mes);
     const tbody = document.getElementById('custo-fornecedor-tbody');
     const tag = document.getElementById('custo-fornecedor-tag');
@@ -270,8 +307,8 @@
           if (!resp.ok) { alert(data.erro || 'Erro ao excluir.'); return; }
           todasDespesas = todasDespesas.filter(d => String(d.id) !== String(despesaId));
           renderizar();
-          renderKpis();
-            renderCustoPorFornecedor();
+          renderKpis(document.getElementById('period-select').value);
+            renderCustoPorFornecedor(document.getElementById('period-select').value);
         } catch (err) {
           alert('Falha de conexão ao excluir.');
         }
@@ -303,8 +340,8 @@
             const item = todasDespesas.find(d => String(d.id) === String(despesaId));
             if (item) item.status = novoStatus;
             renderizar();
-            renderKpis();
-            renderCustoPorFornecedor();
+            renderKpis(document.getElementById('period-select').value);
+            renderCustoPorFornecedor(document.getElementById('period-select').value);
           }
         } catch (err) {
           msg.className = 'row-msg error';
@@ -316,6 +353,11 @@
       });
     });
   }
+
+  document.getElementById('period-select').addEventListener('change', (e) => {
+    renderKpis(e.target.value);
+    renderCustoPorFornecedor(e.target.value);
+  });
 
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -333,8 +375,8 @@
     todasDespesas = (despesasData.sucesso && despesasData.despesas) ? despesasData.despesas : [];
     todasFaturas = (faturasData.sucesso && faturasData.faturas) ? faturasData.faturas : [];
     renderizar();
-    renderKpis();
-            renderCustoPorFornecedor();
+    renderKpis(document.getElementById('period-select').value);
+            renderCustoPorFornecedor(document.getElementById('period-select').value);
   }).catch(() => {
     document.getElementById('despesas-tbody').innerHTML =
       '<tr><td colspan="6" style="color:var(--red); padding:24px;">Falha ao carregar despesas do servidor.</td></tr>';
