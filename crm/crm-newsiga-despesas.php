@@ -64,6 +64,10 @@
   .row-msg.error{color:var(--red);}
 
   .origem-pill{font-size:11px; font-weight:600; color:var(--muted); margin-left:8px;}
+
+  tr.categoria-header td{background:var(--card); font-family:var(--font-display); font-weight:700; font-size:13.5px; padding:12px 22px; border-bottom:1px solid var(--border);}
+  tr.categoria-header .categoria-total{float:right; color:var(--forest);}
+  tr.categoria-body td.name{padding-left:36px; font-weight:400; font-family:var(--font-ui);}
   .empty-state{padding:60px 22px; text-align:center; color:var(--muted); font-size:14px;}
 
   @media (max-width:860px){
@@ -254,9 +258,10 @@
   }
 
   // Visão consolidada: quanto cada fornecedor recebeu (ou vai receber)
-  // na competência selecionada, somando todos os contratos dele — o
-  // card de Despesa do mês já mostra o total geral, este quebra por
-  // fornecedor.
+  // na competência selecionada, agrupado por categoria (Funcionário,
+  // Terceirizado, Contabilidade, Imposto, Software...) com subtotal por
+  // categoria — o card de Despesa do mês já mostra o total geral, este
+  // quebra por categoria e por fornecedor dentro dela.
   function renderCustoPorFornecedor(competencia) {
     const mes = competencia || mesAtual();
     const despesasDoMes = todasDespesas.filter(d => d.vencimento.slice(0, 7) === mes);
@@ -269,24 +274,37 @@
       return;
     }
 
-    const porFornecedor = {};
+    const porCategoria = {};
     despesasDoMes.forEach(d => {
-      if (!porFornecedor[d.fornecedor_nome]) {
-        porFornecedor[d.fornecedor_nome] = { total: 0, qtd: 0 };
+      const categoria = d.fornecedor_categoria || 'Sem categoria';
+      if (!porCategoria[categoria]) porCategoria[categoria] = { total: 0, fornecedores: {} };
+      porCategoria[categoria].total += Number(d.valor);
+      if (!porCategoria[categoria].fornecedores[d.fornecedor_nome]) {
+        porCategoria[categoria].fornecedores[d.fornecedor_nome] = { total: 0, qtd: 0 };
       }
-      porFornecedor[d.fornecedor_nome].total += Number(d.valor);
-      porFornecedor[d.fornecedor_nome].qtd += 1;
+      porCategoria[categoria].fornecedores[d.fornecedor_nome].total += Number(d.valor);
+      porCategoria[categoria].fornecedores[d.fornecedor_nome].qtd += 1;
     });
 
-    const linhas = Object.entries(porFornecedor).sort((a, b) => b[1].total - a[1].total);
-    tag.textContent = `${linhas.length} fornecedor${linhas.length === 1 ? '' : 'es'}`;
+    const categorias = Object.entries(porCategoria).sort((a, b) => b[1].total - a[1].total);
+    const totalFornecedores = new Set(despesasDoMes.map(d => d.fornecedor_nome)).size;
+    tag.textContent = `${categorias.length} categoria${categorias.length === 1 ? '' : 's'} · ${totalFornecedores} fornecedor${totalFornecedores === 1 ? '' : 'es'}`;
 
-    tbody.innerHTML = linhas.map(([nome, dados]) => `
-      <tr>
-        <td class="name">${nome}</td>
-        <td style="color:var(--muted);">${dados.qtd} lançamento${dados.qtd === 1 ? '' : 's'}</td>
-        <td>${fmt(dados.total)}</td>
-      </tr>`).join('');
+    tbody.innerHTML = categorias.map(([categoria, dadosCategoria]) => {
+      const linhasFornecedor = Object.entries(dadosCategoria.fornecedores)
+        .sort((a, b) => b[1].total - a[1].total)
+        .map(([nome, dados]) => `
+          <tr class="categoria-body">
+            <td class="name">${nome}</td>
+            <td style="color:var(--muted);">${dados.qtd} lançamento${dados.qtd === 1 ? '' : 's'}</td>
+            <td>${fmt(dados.total)}</td>
+          </tr>`).join('');
+      return `
+        <tr class="categoria-header">
+          <td colspan="3">${categoria}<span class="categoria-total">${fmt(dadosCategoria.total)}</span></td>
+        </tr>
+        ${linhasFornecedor}`;
+    }).join('');
   }
 
   function renderizar() {

@@ -122,9 +122,10 @@
       const badgeClasse = qtd === 0 ? 'badge zero' : 'badge';
       const badgeTexto = qtd === 0 ? 'nenhum ativo' : `${qtd} contrato${qtd === 1 ? '' : 's'}`;
       const movideskPill = f.movidesk_technician_name ? '<span class="movidesk-pill">· ' + f.movidesk_technician_name + ' no Movidesk</span>' : '';
+      const categoriaSub = f.categoria ? `<div style="color:var(--muted); font-size:12.5px; font-weight:400; margin-top:2px;">${f.categoria}</div>` : '';
       return `
         <tr class="fornecedor-row" data-id="${f.id}">
-          <td class="name">${f.nome}</td>
+          <td class="name">${f.nome}${categoriaSub}</td>
           <td><span class="tipo-badge">${tipoLabels[f.tipo] || f.tipo}</span>${movideskPill}</td>
           <td><span class="${badgeClasse}">${badgeTexto}</span></td>
           <td><span class="status-pill ${f.status}">${f.status}</span></td>

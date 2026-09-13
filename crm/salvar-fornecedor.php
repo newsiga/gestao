@@ -19,6 +19,7 @@ $db = getDb();
 
 $nome                    = trim($_POST['nome'] ?? '');
 $tipo                    = $_POST['tipo'] ?? '';
+$categoria               = trim($_POST['categoria'] ?? '') ?: null;
 $movideskTechnicianName  = trim($_POST['movidesk_technician_name'] ?? '') ?: null;
 $formaPagamento          = trim($_POST['forma_pagamento'] ?? '') ?: null;
 
@@ -36,10 +37,10 @@ if ($erros) {
 
 try {
     $stmt = $db->prepare("
-        INSERT INTO fornecedores (nome, tipo, movidesk_technician_name, forma_pagamento)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO fornecedores (nome, tipo, categoria, movidesk_technician_name, forma_pagamento)
+        VALUES (?, ?, ?, ?, ?)
     ");
-    $stmt->execute([$nome, $tipo, $movideskTechnicianName, $formaPagamento]);
+    $stmt->execute([$nome, $tipo, $categoria, $movideskTechnicianName, $formaPagamento]);
     $fornecedorId = (int) $db->lastInsertId();
 
     echo json_encode(['sucesso' => true, 'fornecedor_id' => $fornecedorId, 'nome' => $nome]);

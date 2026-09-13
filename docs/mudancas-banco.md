@@ -87,6 +87,27 @@ há necessidade real de apagar, só de parar de gravar nelas).
 
 ---
 
+## 2026-09-13 — Categoria de fornecedor (agrupamento de relatório)
+
+Campo livre (não enum) pra agrupar fornecedores em relatórios de custo
+— Funcionário, Terceirizado, Contabilidade, Imposto, Software, etc.
+Texto livre em vez de enum de propósito: essas categorias evoluem com
+frequência e um enum exigiria `ALTER TABLE` toda vez que surgisse uma
+categoria nova — o formulário sugere valores comuns via `<datalist>`,
+mas aceita qualquer texto. Diferente de `fornecedores.tipo`
+(operacional/fixo), que é sobre vínculo com Movidesk, não sobre
+classificação contábil.
+
+```sql
+ALTER TABLE fornecedores ADD COLUMN categoria VARCHAR(50) NULL AFTER tipo;
+```
+
+Coluna nullable, sem risco pros fornecedores já cadastrados (viram
+`categoria = NULL`, tratado como "Sem categoria" nos relatórios até
+serem editados).
+
+---
+
 ## 2026-09-12 — Exceção de taxa por cliente em contratos_fornecedor
 
 Um fornecedor `hora_aberta` normalmente cobra a mesma taxa de qualquer

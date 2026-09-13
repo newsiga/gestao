@@ -19,6 +19,7 @@ $db = getDb();
 $id                     = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 $nome                   = trim($_POST['nome'] ?? '');
 $tipo                   = $_POST['tipo'] ?? '';
+$categoria              = trim($_POST['categoria'] ?? '') ?: null;
 $movideskTechnicianName = trim($_POST['movidesk_technician_name'] ?? '') ?: null;
 $formaPagamento         = trim($_POST['forma_pagamento'] ?? '') ?: null;
 $status                 = $_POST['status'] ?? 'ativo';
@@ -41,10 +42,10 @@ if ($erros) {
 try {
     $stmt = $db->prepare("
         UPDATE fornecedores
-        SET nome = ?, tipo = ?, movidesk_technician_name = ?, forma_pagamento = ?, status = ?
+        SET nome = ?, tipo = ?, categoria = ?, movidesk_technician_name = ?, forma_pagamento = ?, status = ?
         WHERE id = ?
     ");
-    $stmt->execute([$nome, $tipo, $movideskTechnicianName, $formaPagamento, $status, $id]);
+    $stmt->execute([$nome, $tipo, $categoria, $movideskTechnicianName, $formaPagamento, $status, $id]);
 
     echo json_encode(['sucesso' => true, 'fornecedor_id' => $id, 'nome' => $nome]);
 } catch (Throwable $e) {

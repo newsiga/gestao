@@ -113,6 +113,10 @@
       <strong id="info-tipo">—</strong>
     </div>
     <div class="info-item">
+      <small>Categoria</small>
+      <strong id="info-categoria">—</strong>
+    </div>
+    <div class="info-item">
       <small>Forma de pagamento</small>
       <strong id="info-forma-pagamento">—</strong>
     </div>
@@ -266,6 +270,7 @@
         document.title = `CRM Newsiga — ${f.nome}`;
 
         document.getElementById('info-tipo').textContent = tipoFornecedorLabels[f.tipo] || f.tipo;
+        document.getElementById('info-categoria').textContent = f.categoria || '—';
         document.getElementById('info-forma-pagamento').textContent = f.forma_pagamento || '—';
         document.getElementById('info-movidesk').innerHTML = f.movidesk_technician_name
           ? `${f.movidesk_technician_name} <span class="movidesk-tag">vinculado</span>`

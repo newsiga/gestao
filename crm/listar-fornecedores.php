@@ -15,7 +15,7 @@ try {
     $db = getDb();
     $stmt = $db->query("
         SELECT
-            f.id, f.nome, f.tipo, f.movidesk_technician_name, f.forma_pagamento, f.status,
+            f.id, f.nome, f.tipo, f.categoria, f.movidesk_technician_name, f.forma_pagamento, f.status,
             (SELECT COUNT(*) FROM contratos_fornecedor cf WHERE cf.fornecedor_id = f.id AND cf.status != 'encerrado') AS contratos_ativos,
             (SELECT COUNT(*) FROM contratos_fornecedor cf WHERE cf.fornecedor_id = f.id) AS contratos_total
         FROM fornecedores f

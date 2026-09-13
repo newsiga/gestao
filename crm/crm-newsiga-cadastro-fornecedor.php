@@ -84,6 +84,18 @@
 
     <div class="section">
       <div class="field">
+        <label>Categoria <span style="color:var(--muted); font-weight:400;">— opcional, pra agrupar nos relatórios de custo</span></label>
+        <input type="text" name="categoria" id="categoria" list="categorias-sugeridas" placeholder="ex: Funcionário, Terceirizado, Contabilidade, Imposto, Software...">
+        <datalist id="categorias-sugeridas">
+          <option value="Funcionário">
+          <option value="Terceirizado">
+          <option value="Contabilidade">
+          <option value="Imposto">
+          <option value="Software">
+        </datalist>
+        <div class="hint">Pode digitar uma categoria nova a qualquer momento — a lista acima é só sugestão, não trava em nenhuma opção fixa.</div>
+      </div>
+      <div class="field">
         <label>Nome do técnico no Movidesk <span style="color:var(--muted); font-weight:400;">— opcional</span></label>
         <input type="text" name="movidesk_technician_name" id="movidesk_technician_name" placeholder="ex: João Silva">
         <div class="hint">Só preencha se este fornecedor corresponder a um técnico cadastrado no Movidesk — necessário pro cálculo automático de custo por chamado fechado (fase futura). Deixe em branco se não houver correspondência.</div>
@@ -140,6 +152,7 @@
         const f = data.fornecedor;
         document.getElementById('fornecedor-id').value = f.id;
         document.getElementById('nome').value = f.nome;
+        document.getElementById('categoria').value = f.categoria || '';
         document.getElementById('movidesk_technician_name').value = f.movidesk_technician_name || '';
         document.getElementById('forma_pagamento').value = f.forma_pagamento || '';
         document.getElementById('status').value = f.status;

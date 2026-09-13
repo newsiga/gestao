@@ -18,7 +18,7 @@ try {
             dc.id, dc.contrato_fornecedor_id, dc.competencia, dc.horas_consumidas, dc.valor,
             dc.vencimento, dc.status, dc.origem, dc.criado_em,
             cf.tipo AS contrato_tipo, cf.descricao AS contrato_descricao,
-            f.id AS fornecedor_id, f.nome AS fornecedor_nome, f.tipo AS fornecedor_tipo
+            f.id AS fornecedor_id, f.nome AS fornecedor_nome, f.tipo AS fornecedor_tipo, f.categoria AS fornecedor_categoria
         FROM despesas_competencia dc
         JOIN contratos_fornecedor cf ON cf.id = dc.contrato_fornecedor_id
         JOIN fornecedores f ON f.id = cf.fornecedor_id
