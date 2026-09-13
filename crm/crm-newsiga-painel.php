@@ -62,7 +62,7 @@
   .side-stack{display:flex; flex-direction:column; gap:20px;}
   .side-stack .panel{flex:1; display:flex; flex-direction:column; min-height:0;}
   .side-stack .panel-head{flex-shrink:0;}
-  #radar-container{flex:1; overflow-y:auto; min-height:0; max-height:520px;}
+  #radar-container{flex:1; overflow-y:auto; min-height:0;}
   #alertas-container, #pipeline-container{flex:1; overflow-y:auto; min-height:0;}
   .panel{background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
   .panel-head{padding:18px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;}
@@ -393,20 +393,29 @@
     document.getElementById('kpi-previsao-delta').textContent = previsaoDelta;
 
     // ---- A gerar essa semana ----
-    const aGerarSemana = todasFaturasGlobal.filter(f => f.status === 'a_gerar' && f.vencimento >= hoje && f.vencimento <= em7dias);
-    document.getElementById('kpi-gerar-valor').textContent = fmtMoedaPt(aGerarSemana.reduce((s, f) => s + Number(f.valor), 0));
-    document.getElementById('kpi-gerar-delta').textContent = `${aGerarSemana.length} cobrança${aGerarSemana.length === 1 ? '' : 's'} pendente${aGerarSemana.length === 1 ? '' : 's'}`;
+    // Faturas ainda não geradas + parcelas de projeto ainda não geradas,
+    // ambas com vencimento nos próximos 7 dias (antes só olhava faturas).
+    const faturasAGerarSemana = todasFaturasGlobal.filter(f => f.status === 'a_gerar' && f.vencimento >= hoje && f.vencimento <= em7dias);
+    const parcelasAGerarSemana = todasParcelasPendentesGlobal.filter(p => p.status === 'a_gerar' && p.vencimento >= hoje && p.vencimento <= em7dias);
+    const valorGerarSemana = faturasAGerarSemana.reduce((s, f) => s + Number(f.valor), 0) + parcelasAGerarSemana.reduce((s, p) => s + Number(p.valor), 0);
+    const qtdGerarSemana = faturasAGerarSemana.length + parcelasAGerarSemana.length;
+    document.getElementById('kpi-gerar-valor').textContent = fmtMoedaPt(valorGerarSemana);
+    document.getElementById('kpi-gerar-delta').textContent = `${qtdGerarSemana} cobrança${qtdGerarSemana === 1 ? '' : 's'} pendente${qtdGerarSemana === 1 ? '' : 's'}`;
 
-    // ---- Em atraso (faturas + parcelas de projeto, ambas não geradas a tempo) ----
+    // ---- Em atraso (faturas + parcelas de projeto) ----
+    // Cobre dois casos: nunca foi gerada e o vencimento já passou (falha
+    // do fechamento em gerar a tempo), OU o ASAAS já confirmou o atraso
+    // de verdade (status 'atrasado', vindo do webhook PAYMENT_OVERDUE —
+    // só existe pra parcela, não pra fatura recorrente).
     const faturasAtrasadas = todasFaturasGlobal.filter(f => f.status === 'a_gerar' && f.vencimento < hoje);
-    const parcelasEmAtraso = todasParcelasPendentesGlobal.filter(p => p.status === 'a_gerar' && p.vencimento < hoje);
+    const parcelasEmAtraso = todasParcelasPendentesGlobal.filter(p => (p.status === 'a_gerar' && p.vencimento < hoje) || p.status === 'atrasado');
     const valorAtraso = faturasAtrasadas.reduce((s, f) => s + Number(f.valor), 0) + parcelasEmAtraso.reduce((s, p) => s + Number(p.valor), 0);
     const qtdAtraso = faturasAtrasadas.length + parcelasEmAtraso.length;
     document.getElementById('kpi-atraso-valor').textContent = fmtMoedaPt(valorAtraso);
     document.getElementById('kpi-atraso-delta').textContent = `${qtdAtraso} cobrança${qtdAtraso === 1 ? '' : 's'} não gerada${qtdAtraso === 1 ? '' : 's'} a tempo`;
 
     // ---- Projetos sem fatura ----
-    const parcelasAtrasadas = todasParcelasPendentesGlobal.filter(p => p.status === 'a_gerar' && p.vencimento < hoje);
+    const parcelasAtrasadas = todasParcelasPendentesGlobal.filter(p => (p.status === 'a_gerar' && p.vencimento < hoje) || p.status === 'atrasado');
     const contratosAfetados = new Set(parcelasAtrasadas.map(p => p.contrato_id));
     document.getElementById('kpi-projetos-valor').textContent = contratosAfetados.size;
     document.getElementById('kpi-projetos-delta').textContent = contratosAfetados.size > 0
