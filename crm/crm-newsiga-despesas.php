@@ -105,7 +105,7 @@
 
   <div class="kpis">
     <div class="kpi">
-      <div class="label">Receita do mês (faturas)</div>
+      <div class="label">Receita do mês (previsão)</div>
       <div class="value" id="kpi-receita">—</div>
       <div class="delta" id="kpi-receita-delta"></div>
     </div>
@@ -195,7 +195,38 @@
 
   let todasDespesas = [];
   let todasFaturas = [];
+  let todosContratos = [];
+  let todasParcelasPendentes = [];
   let filtroAtivo = '';
+
+  // Mesma fórmula de "Previsão do mês" do painel geral
+  // (crm-newsiga-painel.php) — não é só a soma das faturas já geradas:
+  // contrato de valor fixo sem fatura ainda entra pelo valor certo do
+  // contrato (já é certo antes do fechamento), e parcela de projeto
+  // parcelado com vencimento no mês entra também. Precisa ser a MESMA
+  // conta dos dois lugares, senão os dois cards de "receita do mês"
+  // mostram números diferentes pro mesmo mês (confuso).
+  function calcularReceitaPrevista(mes) {
+    const ativos = todosContratos.filter(c => c.status === 'ativo');
+    let total = 0, qtd = 0;
+    ativos.forEach(c => {
+      if (c.tipo === 'projeto_parcelado') return;
+      const faturaDessaCompetencia = todasFaturas.find(f => f.contrato_id === c.id && f.vencimento.slice(0, 7) === mes);
+      if (faturaDessaCompetencia) {
+        total += Number(faturaDessaCompetencia.valor);
+        qtd++;
+        return;
+      }
+      if (c.tipo === 'mensalidade_fixa') {
+        total += Number(c.valor || 0);
+        qtd++;
+      }
+    });
+    todasParcelasPendentes
+      .filter(p => p.vencimento.slice(0, 7) === mes)
+      .forEach(p => { total += Number(p.valor); qtd++; });
+    return { total, qtd };
+  }
 
   function renderKpis(competencia) {
     const mes = competencia || mesAtual();
@@ -206,10 +237,9 @@
     document.getElementById('kpi-despesa').textContent = fmt(totalDespesa);
     document.getElementById('kpi-despesa-delta').textContent = `${despesasDoMes.length} lançamento${despesasDoMes.length === 1 ? '' : 's'}`;
 
-    const faturasDoMes = todasFaturas.filter(f => f.vencimento.slice(0, 7) === mes);
-    const totalReceita = faturasDoMes.reduce((s, f) => s + Number(f.valor), 0);
+    const { total: totalReceita, qtd: qtdReceita } = calcularReceitaPrevista(mes);
     document.getElementById('kpi-receita').textContent = fmt(totalReceita);
-    document.getElementById('kpi-receita-delta').textContent = `${faturasDoMes.length} fatura${faturasDoMes.length === 1 ? '' : 's'}`;
+    document.getElementById('kpi-receita-delta').textContent = `${qtdReceita} contrato${qtdReceita === 1 ? '' : 's'}/parcela${qtdReceita === 1 ? '' : 's'} — mesma previsão do painel`;
 
     const fluxo = totalReceita - totalDespesa;
     document.getElementById('kpi-fluxo').textContent = fmt(fluxo);
@@ -377,9 +407,13 @@
   Promise.all([
     fetch('listar-despesas-competencia.php').then(r => r.json()).catch(() => ({ sucesso: false })),
     fetch('listar-faturas.php').then(r => r.json()).catch(() => ({ sucesso: false })),
-  ]).then(([despesasData, faturasData]) => {
+    fetch('listar-contratos.php').then(r => r.json()).catch(() => ({ sucesso: false })),
+    fetch('listar-parcelas-pendentes.php').then(r => r.json()).catch(() => ({ sucesso: false })),
+  ]).then(([despesasData, faturasData, contratosData, parcelasData]) => {
     todasDespesas = (despesasData.sucesso && despesasData.despesas) ? despesasData.despesas : [];
     todasFaturas = (faturasData.sucesso && faturasData.faturas) ? faturasData.faturas : [];
+    todosContratos = (contratosData.sucesso && contratosData.contratos) ? contratosData.contratos : [];
+    todasParcelasPendentes = (parcelasData.sucesso && parcelasData.parcelas) ? parcelasData.parcelas : [];
     renderizar();
     renderKpis(document.getElementById('period-select').value);
             renderCustoPorFornecedor(document.getElementById('period-select').value);
