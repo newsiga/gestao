@@ -261,11 +261,16 @@
 
   function renderizar() {
     const tbody = document.getElementById('despesas-tbody');
-    const lista = (filtroAtivo ? todasDespesas.filter(d => d.status === filtroAtivo) : todasDespesas)
-      .slice().sort((a, b) => b.vencimento.localeCompare(a.vencimento));
+    const competenciaSelecionada = document.getElementById('period-select').value;
+    // Filtra pelo mês do VENCIMENTO (não da competência/mês de
+    // referência) — mesma convenção dos KPIs acima e do painel geral,
+    // é quando o dinheiro sai de verdade que importa pra essa listagem.
+    let lista = todasDespesas.filter(d => d.vencimento.slice(0, 7) === competenciaSelecionada);
+    if (filtroAtivo) lista = lista.filter(d => d.status === filtroAtivo);
+    lista = lista.slice().sort((a, b) => b.vencimento.localeCompare(a.vencimento));
 
     if (lista.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Nenhuma despesa' + (filtroAtivo ? ' com esse status' : ' lançada ainda') + '.</div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Nenhuma despesa' + (filtroAtivo ? ' com esse status' : '') + ' com vencimento nesse mês.</div></td></tr>';
       return;
     }
 
@@ -357,6 +362,7 @@
   document.getElementById('period-select').addEventListener('change', (e) => {
     renderKpis(e.target.value);
     renderCustoPorFornecedor(e.target.value);
+    renderizar();
   });
 
   document.querySelectorAll('.filter-btn').forEach(btn => {
