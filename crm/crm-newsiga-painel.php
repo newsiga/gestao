@@ -78,6 +78,7 @@
   .status-pill{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:5px 12px; border-radius:20px; text-align:center; white-space:nowrap;}
   .status-pill.gerar{background:#f3e6c9; color:#8a6414;}
   .status-pill.gerado{background:#dbe9d8; color:#2f5c3f;}
+  .status-pill.pago{background:#c8e6c0; color:#1f4d2c;}
   .status-pill.atraso{background:#f1d9d4; color:var(--red);}
   .status-pill.previsto{background:#e2e0d8; color:var(--muted);}
 
@@ -503,9 +504,12 @@
     }
 
     container.innerHTML = daCompetencia.map(f => {
-      const vencida = f.vencimento < hoje && f.status !== 'gerado' && f.status !== 'previsto';
-      const pillClasse = f.status === 'previsto' ? 'previsto' : (vencida ? 'atraso' : (f.status === 'gerado' ? 'gerado' : 'gerar'));
-      const pillTexto = f.status === 'previsto' ? 'previsto' : (vencida ? 'atrasado' : (f.status === 'gerado' ? 'gerado' : 'a gerar'));
+      // 'pago' passou a entrar nessa lista (antes ficava de fora na
+      // origem) — precisa de estado próprio, senão cai na regra de
+      // "vencida" e mostra atrasado pra algo que já foi recebido.
+      const vencida = f.vencimento < hoje && f.status !== 'gerado' && f.status !== 'previsto' && f.status !== 'pago';
+      const pillClasse = f.status === 'previsto' ? 'previsto' : (f.status === 'pago' ? 'pago' : (vencida ? 'atraso' : (f.status === 'gerado' ? 'gerado' : 'gerar')));
+      const pillTexto = f.status === 'previsto' ? 'previsto' : (f.status === 'pago' ? 'pago' : (vencida ? 'atrasado' : (f.status === 'gerado' ? 'gerado' : 'a gerar')));
       return `
         <div class="radar-row">
           <div class="radar-date">${fmtDataCurta(f.vencimento)}</div>

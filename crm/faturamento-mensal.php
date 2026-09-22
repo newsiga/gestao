@@ -12,7 +12,11 @@ require_once __DIR__.'/auth.php'; require_login_api();
  * - Contrato por hora (banco_horas_*, hora_aberta) sem fatura ainda: não
  *   entra (consumo do mês não está definido, sem estimativa).
  * - Parcelas de projeto com vencimento no mês: sempre entram pelo valor
- *   real, qualquer status exceto 'pago' (que já foi contabilizado antes).
+ *   real, qualquer status — inclusive 'pago'. (Antes excluía 'pago'
+ *   pensando que já tinha sido contado em outro lugar, mas o mês é
+ *   definido pelo VENCIMENTO, não por quando o status mudou — excluir
+ *   'pago' fazia a receita do mês CAIR no momento em que a parcela era
+ *   paga, o oposto do esperado. Ver nota em listar-parcelas-pendentes.php.)
  */
 
 require_once __DIR__ . '/db.php';
@@ -25,7 +29,7 @@ try {
     $contratosAtivos = $db->query("SELECT id, tipo, valor FROM contratos WHERE status = 'ativo'")->fetchAll();
 
     $stmtFaturasMes = $db->prepare("SELECT contrato_id, valor FROM faturas WHERE DATE_FORMAT(vencimento, '%Y-%m') = ?");
-    $stmtParcelasMes = $db->prepare("SELECT COALESCE(SUM(valor), 0) AS total FROM parcelas WHERE DATE_FORMAT(vencimento, '%Y-%m') = ? AND status != 'pago'");
+    $stmtParcelasMes = $db->prepare("SELECT COALESCE(SUM(valor), 0) AS total FROM parcelas WHERE DATE_FORMAT(vencimento, '%Y-%m') = ?");
 
     $linhas = [];
     for ($i = 5; $i >= 0; $i--) {
