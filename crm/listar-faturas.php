@@ -17,7 +17,7 @@ try {
         SELECT
             f.id, f.contrato_id, f.competencia, f.valor, f.valor_liquido, f.valor_imposto,
             f.vencimento, f.status,
-            c.tipo AS contrato_tipo, c.descricao AS contrato_descricao,
+            c.tipo AS contrato_tipo, c.descricao AS contrato_descricao, c.faturamento_gerenciado_por,
             cl.nome AS cliente_nome
         FROM faturas f
         JOIN contratos c ON c.id = f.contrato_id

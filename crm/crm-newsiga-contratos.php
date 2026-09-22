@@ -92,7 +92,10 @@
       <a href="crm-newsiga-despesas.php">Despesas</a>
       <a href="crm-newsiga-prospects.php">Prospects</a>
     </div>
-    <a class="btn-nav" href="crm-newsiga-cadastro-contrato.php">+ Novo contrato</a>
+    <div style="display:flex; gap:10px;">
+      <a class="btn-nav" href="crm-newsiga-lancar-receita.php" style="background:var(--white); color:var(--forest); border:1px solid var(--border);">+ Lançar receita</a>
+      <a class="btn-nav" href="crm-newsiga-cadastro-contrato.php">+ Novo contrato</a>
+    </div>
   </div>
 </nav>
 

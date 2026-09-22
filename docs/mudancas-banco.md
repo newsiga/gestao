@@ -108,6 +108,31 @@ serem editados).
 
 ---
 
+## 2026-09-22 — Faturamento manual (receita de parceiros fora do ASAAS)
+
+HubVision e MobCode pagam a Newsiga pelo repasse de horas do Robson,
+mas não são clientes cobrados via ASAAS — a receita deles precisa
+entrar no CRM (pra bater com a despesa/repasse que já existe do lado
+do Robson), mas o lançamento é sempre manual, nunca automático.
+
+```sql
+ALTER TABLE contratos
+    MODIFY COLUMN faturamento_gerenciado_por enum('sistema','assinatura_asaas','manual') NOT NULL DEFAULT 'sistema';
+```
+
+`fechar-competencia.php` já filtra `faturamento_gerenciado_por =
+'sistema'` em ambas as queries — um contrato `'manual'` fica
+automaticamente fora do fechamento automático, sem precisar mexer
+nesse arquivo. Faturas lançadas manualmente (`salvar-receita-manual.php`)
+nascem com `status = 'confirmado'` (valor do enum de `faturas.status`
+que já existia mas nunca era usado por nenhum fluxo — reservado pra
+esse caso) e `asaas_payment_id = NULL`, que é como o resto do sistema
+já distingue implicitamente uma fatura sem cobrança real associada.
+
+Nenhuma coluna nova em `faturas` — reaproveita a estrutura existente.
+
+---
+
 ## 2026-09-12 — Exceção de taxa por cliente em contratos_fornecedor
 
 Um fornecedor `hora_aberta` normalmente cobra a mesma taxa de qualquer

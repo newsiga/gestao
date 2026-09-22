@@ -122,6 +122,8 @@ $descricaoServico = trim($_POST['descricao_servico'] ?? '') ?: null;
 $origemProposta  = trim($_POST['origem_proposta'] ?? '') ?: null;
 $movideskContractName = trim($_POST['movidesk_contract_name'] ?? '') ?: null;
 $status          = $_POST['status'] ?? 'rascunho';
+$faturamentoManual = !empty($_POST['faturamento_manual']);
+$faturamentoGerenciadoPor = $faturamentoManual ? 'manual' : 'sistema';
 
 $tiposValidos   = ['mensalidade_fixa', 'hora_aberta', 'banco_horas_minimo', 'banco_horas_consumo', 'projeto_parcelado'];
 $statusValidos  = ['rascunho', 'aprovado'];
@@ -241,9 +243,9 @@ try {
     $stmt = $db->prepare("
         INSERT INTO contratos
             (cliente_id, tipo, descricao, descricao_servico, valor, valor_hora, valor_hora_excedente, horas_banco, horas_minimas, movidesk_contract_name, dia_vencimento, origem_proposta, status, faturamento_gerenciado_por)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'sistema')
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->execute([$clienteId, $tipo, $descricao, $descricaoServico, $valor, $valorHora, $valorHoraExcedente, $horasBanco, $horasMinimas, $movideskContractName, $diaVencimento, $origemProposta, $status]);
+    $stmt->execute([$clienteId, $tipo, $descricao, $descricaoServico, $valor, $valorHora, $valorHoraExcedente, $horasBanco, $horasMinimas, $movideskContractName, $diaVencimento, $origemProposta, $status, $faturamentoGerenciadoPor]);
     $contratoId = (int) $db->lastInsertId();
 
     if ($tipo === 'projeto_parcelado') {
@@ -264,11 +266,12 @@ try {
     exit;
 }
 
-// Se o contrato já nasceu 'aprovado', o front-end deve levar o usuário
-// direto pra tela de confirmação ASAAS (é lá que entra a checagem de
-// divergência de dados e de assinatura já existente).
+// Se o contrato já nasceu 'aprovado' E é faturado pelo sistema (ASAAS),
+// o front-end deve levar o usuário direto pra tela de confirmação —
+// contrato de faturamento manual nunca passa por lá, não tem cliente
+// ASAAS nenhum pra confirmar.
 echo json_encode([
     'sucesso' => true,
     'contrato_id' => $contratoId,
-    'redirecionar_para_confirmacao_asaas' => $status === 'aprovado',
+    'redirecionar_para_confirmacao_asaas' => $status === 'aprovado' && !$faturamentoManual,
 ]);

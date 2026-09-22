@@ -196,6 +196,15 @@
         </div>
 
         <div class="section">
+          <span class="section-label">Faturamento</span>
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+            <input type="checkbox" name="faturamento_manual" value="1" id="faturamento-manual-checkbox" style="width:18px; height:18px;">
+            <span style="font-size:14px;">Faturamento manual — não passa pelo ASAAS</span>
+          </label>
+          <div class="hint" style="margin-top:8px;">Marque pra parceiros/relações que não são cobrados via boleto/Pix do ASAAS (ex: repasse de consultoria pra outra empresa, tipo HubVision/MobCode). O fechamento automático ignora esse contrato, e a receita é lançada manualmente depois.</div>
+        </div>
+
+        <div class="section">
           <span class="section-label">Status inicial</span>
           <input type="hidden" name="status" id="status-input" value="rascunho">
           <div class="status-toggle">
