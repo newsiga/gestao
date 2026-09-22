@@ -244,7 +244,7 @@
         const botaoExcluir = c.status === 'rascunho'
           ? `<a href="#" class="excluir-link" data-id="${c.id}" style="color:var(--red); font-weight:600; font-size:13px; text-decoration:none; margin-left:14px;">excluir</a>`
           : '';
-        const linkConfirmacao = c.status === 'aprovado'
+        const linkConfirmacao = (c.status === 'aprovado' && c.faturamento_gerenciado_por === 'sistema')
           ? `<a href="crm-newsiga-confirmacao-asaas.php?id=${c.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none; margin-left:14px;">continuar confirmação</a>`
           : '';
         return `
@@ -334,7 +334,7 @@
             const item = todosContratos.find(c => String(c.id) === String(contratoId));
             if (item) item.status = novoStatus;
 
-            if (novoStatus === 'aprovado') {
+            if (novoStatus === 'aprovado' && item && item.faturamento_gerenciado_por === 'sistema') {
               window.location.href = `crm-newsiga-confirmacao-asaas.php?id=${contratoId}`;
             } else {
               renderizar(); // reconstrói a tabela — cada select passa a oferecer só as opções válidas pro novo status
