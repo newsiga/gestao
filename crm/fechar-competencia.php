@@ -144,7 +144,14 @@ function aplicarImpostoPorFora(float $valorLiquido): float
     return round($valorLiquido / (1 - ALIQUOTA_IMPOSTO_HORAS), 2);
 }
 
-/** Calcula o valor LÍQUIDO (sem imposto) de um contrato baseado em horas, conforme o tipo */
+/**
+ * Calcula o valor LÍQUIDO (sem imposto) de um contrato baseado em horas, conforme o tipo.
+ *
+ * As horas vêm sempre direto do Movidesk (movidesk_buscar_consumo), nunca
+ * do cache em banco: a coluna do cache guarda só 2 casas decimais
+ * (13h32min = 13,5333h vira 13,53h), e a fatura saía centavos diferente
+ * conforme o cache estivesse quente ou frio na hora do fechamento.
+ */
 function calcularValorLiquidoHoras(array $contrato, string $competencia): float
 {
     switch ($contrato['tipo']) {
@@ -197,7 +204,7 @@ function calcularValorLiquidoHoras(array $contrato, string $competencia): float
                 // valor_hora local nenhum, o Movidesk é a fonte de verdade.
                 return movidesk_valor_diferenciado($contrato['movidesk_contract_name'], $competencia);
             }
-            $horas = movidesk_consumo_cache((int) $contrato['contrato_id'], $contrato['movidesk_contract_name'], $competencia);
+            $horas = movidesk_buscar_consumo($contrato['movidesk_contract_name'], $competencia);
             return $horas * (float) $contrato['valor_hora'];
 
         case 'banco_horas_consumo':
@@ -207,7 +214,7 @@ function calcularValorLiquidoHoras(array $contrato, string $competencia): float
             if (movidesk_usa_taxa_diferenciada($contrato['movidesk_contract_name'])) {
                 return movidesk_valor_diferenciado($contrato['movidesk_contract_name'], $competencia);
             }
-            $horas = movidesk_consumo_cache((int) $contrato['contrato_id'], $contrato['movidesk_contract_name'], $competencia);
+            $horas = movidesk_buscar_consumo($contrato['movidesk_contract_name'], $competencia);
             $horasBanco = (float) $contrato['horas_banco'];
             $dentroDoBanco = min($horas, $horasBanco);
             $excedente = max(0, $horas - $horasBanco);
