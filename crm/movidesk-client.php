@@ -121,6 +121,52 @@ function movidesk_consumo_cache(int $contratoId, string $nomeContratoMovidesk, s
 }
 
 /**
+ * Resumo do consumo de um banco de horas numa competência, com o valor
+ * de excedente que o PRÓPRIO Movidesk calculou (exceededHourAmount) —
+ * direto na API, sem cache.
+ *
+ * Diferente de somar os apontamentos e multiplicar pela taxa, esse valor
+ * já respeita ajustes comerciais feitos no Movidesk: quando o valor
+ * cobrado de um ticket é zerado lá (acordo com o cliente), as horas
+ * continuam aparecendo no consumo (consumedHours e timeAppointments não
+ * mudam — são elas que pagam o consultor), mas saem do exceededHourAmount.
+ * Os apontamentos individuais não trazem nenhum campo que indique esse
+ * zeramento, então o total calculado pelo Movidesk é a única fonte.
+ *
+ * @return array{horas_consumidas: float, horas_contratadas: float, valor_excedente: float, taxas_excedente: float[]}
+ */
+function movidesk_resumo_consumo(string $nomeContratoMovidesk, string $competencia): array
+{
+    $inicio = "$competencia-01T00:00:00";
+    $fim = date('Y-m-t', strtotime("$competencia-01")) . 'T23:59:59';
+
+    $dados = movidesk_get('timeAgreementConsumption', [
+        'name' => $nomeContratoMovidesk,
+        'startPeriod' => $inicio,
+        'endPeriod' => $fim,
+    ]);
+    if (isset($dados[0]) && is_array($dados[0])) {
+        $dados = $dados[0];
+    }
+
+    if (!isset($dados['exceededHourAmount'], $dados['contractedHours'])) {
+        throw new RuntimeException('o Movidesk não devolveu o valor de excedente calculado (exceededHourAmount/contractedHours)');
+    }
+
+    $taxas = [];
+    foreach (($dados['typeActivities'] ?? []) as $regra) {
+        $taxas[] = (float) ($regra['valueExceededHour'] ?? 0);
+    }
+
+    return [
+        'horas_consumidas' => (float) ($dados['consumedHours'] ?? 0),
+        'horas_contratadas' => (float) $dados['contractedHours'],
+        'valor_excedente' => round((float) $dados['exceededHourAmount'], 2),
+        'taxas_excedente' => array_values(array_unique($taxas)),
+    ];
+}
+
+/**
  * Busca a definição completa de um contrato de horas no Movidesk,
  * incluindo typeActivities (franquia, R$/h normal e R$/h excedente por
  * tipo de hora/atividade) — a mesma fonte de dados que a área do

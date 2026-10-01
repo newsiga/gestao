@@ -6,9 +6,11 @@
  *
  * Cobre os 4 tipos recorrentes:
  *   - mensalidade_fixa: valor cheio, sempre.
- *   - banco_horas_minimo: max(mínimo garantido, consumo × valor_hora) —
- *     se não tiver valor_hora (sem excedente) ou não tiver consumo
- *     disponível, cobra só o mínimo.
+ *   - banco_horas_minimo: mínimo garantido + excedente. Sem valor_hora
+ *     (sem excedente configurado), cobra só o mínimo. O valor do
+ *     excedente é o que o próprio Movidesk calculou (exceededHourAmount),
+ *     não horas × taxa — assim um ticket com valor zerado no Movidesk
+ *     por acordo comercial sai da fatura sem perder as horas apontadas.
  *   - hora_aberta: consumo × valor_hora. Se o contrato usa taxa
  *     diferenciada por tipo de hora no Movidesk (ex: Mari Louças), calcula
  *     automático via movidesk_valor_diferenciado() — franquia e taxas por
@@ -167,13 +169,22 @@ function calcularValorLiquidoHoras(array $contrato, string $competencia): float
                 // esse caso específico, calcule manualmente.
                 throw new RuntimeException('contrato usa taxa diferenciada por tipo de atividade no Movidesk, combinado com mínimo garantido — calcule manualmente (ver relatório da área do cliente)');
             }
-            $horas = movidesk_consumo_cache((int) $contrato['contrato_id'], $contrato['movidesk_contract_name'], $competencia);
+            // O excedente vem do valor que o próprio Movidesk calculou, não
+            // de horas × taxa: é o único lugar onde aparece um ticket com
+            // valor zerado por acordo comercial (as horas dele continuam no
+            // consumo, pra pagar o consultor, mas não são cobradas). Só
+            // confia nesse valor se o Movidesk estiver com o mesmo pacote e
+            // a mesma taxa do contrato aqui — senão seria outra conta.
+            $resumo = movidesk_resumo_consumo($contrato['movidesk_contract_name'], $competencia);
             $horasMinimas = (float) $contrato['horas_minimas'];
-            if ($horas <= $horasMinimas) {
-                return $minimo; // dentro do pacote — só o mínimo, como sempre
+            $valorHora = (float) $contrato['valor_hora'];
+            if (abs($resumo['horas_contratadas'] - $horasMinimas) > 0.001) {
+                throw new RuntimeException("pacote de horas diverge do Movidesk (contrato: {$horasMinimas}h, Movidesk: {$resumo['horas_contratadas']}h) — acerte um dos dois antes de fechar");
             }
-            $horasExcedentes = $horas - $horasMinimas;
-            return $minimo + ($horasExcedentes * (float) $contrato['valor_hora']);
+            if (count($resumo['taxas_excedente']) !== 1 || abs($resumo['taxas_excedente'][0] - $valorHora) > 0.001) {
+                throw new RuntimeException("valor da hora excedente diverge do Movidesk (contrato: R$ $valorHora, Movidesk: R$ " . implode(' / ', $resumo['taxas_excedente']) . ") — acerte um dos dois antes de fechar");
+            }
+            return $minimo + $resumo['valor_excedente'];
 
         case 'hora_aberta':
             if (!$contrato['movidesk_contract_name']) {
