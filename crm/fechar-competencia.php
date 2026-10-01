@@ -48,6 +48,13 @@
  *   Navegador: ?competencia=2026-09&contrato_id=11&token=SEU_TOKEN
  * Sem esse parâmetro, roda todos os contratos elegíveis normalmente
  * (comportamento de sempre, usado pelo cron).
+ *
+ * SIMULAÇÃO: calcula e mostra tudo que seria gerado (mesmos valores,
+ * mesmos vencimentos, mesmos motivos de "pulado"), mas não grava fatura
+ * nenhuma no banco nem cria cobrança no ASAAS — pra conferir os números
+ * antes de rodar de verdade. Ainda consulta o Movidesk (só leitura).
+ *   CLI:      php fechar-competencia.php 2026-09 --simular
+ *   Navegador: ?competencia=2026-09&simular=1&token=SEU_TOKEN
  */
 
 require_once __DIR__ . '/asaas-client.php';
@@ -58,8 +65,11 @@ $competenciaPadrao = date('Y-m', strtotime('first day of last month'));
 $ehCli = (php_sapi_name() === 'cli');
 
 if ($ehCli) {
-    $competencia = $argv[1] ?? $competenciaPadrao;
-    $contratoIdFiltro = isset($argv[2]) ? (int) $argv[2] : null;
+    $argumentos = array_slice($argv, 1);
+    $simular = in_array('--simular', $argumentos, true);
+    $argumentos = array_values(array_diff($argumentos, ['--simular']));
+    $competencia = $argumentos[0] ?? $competenciaPadrao;
+    $contratoIdFiltro = isset($argumentos[1]) ? (int) $argumentos[1] : null;
 } else {
     // Chamada via navegador/curl externo — exige o mesmo token do webhook
     // como proteção simples, já que esse script cria cobrança de verdade.
@@ -72,6 +82,15 @@ if ($ehCli) {
     header('Content-Type: text/plain; charset=utf-8');
     $competencia = $_GET['competencia'] ?? $competenciaPadrao;
     $contratoIdFiltro = isset($_GET['contrato_id']) ? (int) $_GET['contrato_id'] : null;
+    $simular = !empty($_GET['simular']);
+
+    // Via navegador o PHP corta a execução no limite padrão (30s na
+    // hospedagem) — pouco pra um lote inteiro consultando Movidesk e
+    // ASAAS contrato a contrato. Sem isso o script pode morrer no meio,
+    // entre criar a cobrança no ASAAS e gravar o asaas_payment_id aqui.
+    // Pelo mesmo motivo, não para se a aba do navegador for fechada.
+    set_time_limit(0);
+    ignore_user_abort(true);
 }
 
 if (!preg_match('/^\d{4}-\d{2}$/', $competencia)) {
@@ -222,6 +241,9 @@ $db = getDb();
 $asaas = new AsaasClient();
 
 echo "=== Fechamento da competência $competencia" . ($contratoIdFiltro ? " — contrato #$contratoIdFiltro" : "") . " ===\n";
+if ($simular) {
+    echo "*** MODO SIMULAÇÃO — nenhuma fatura é gravada nem enviada ao ASAAS ***\n";
+}
 
 $sql = "
     SELECT c.id AS contrato_id, c.tipo, c.valor, c.valor_hora, c.valor_hora_excedente,
@@ -251,6 +273,7 @@ echo count($contratos) . " contrato(s) elegível(is) encontrado(s).\n\n";
 $gerados = 0;
 $pulados = 0;
 $erros = 0;
+$totalGerado = 0.0;
 
 foreach ($contratos as $contrato) {
     $nome = $contrato['nome'];
@@ -303,6 +326,17 @@ foreach ($contratos as $contrato) {
 
     $vencimento = montarDataVencimento($competencia, (int) $contrato['dia_vencimento']);
 
+    $composicao = $valorImposto > 0
+        ? " (líquido R$ " . number_format($valorLiquido, 2, ',', '.') . " + imposto R$ " . number_format($valorImposto, 2, ',', '.') . ")"
+        : "";
+
+    if ($simular) {
+        echo "- $nome: SIMULADO — geraria R$ " . number_format($valor, 2, ',', '.') . "$composicao venc. $vencimento\n";
+        $gerados++;
+        $totalGerado += $valor;
+        continue;
+    }
+
     if ($faturaExistente) {
         // Reaproveita a fatura travada de uma tentativa anterior, já
         // atualizando valor/vencimento (podem ter mudado desde então).
@@ -331,11 +365,9 @@ foreach ($contratos as $contrato) {
         $db->prepare("UPDATE faturas SET status = 'gerado', asaas_payment_id = ? WHERE id = ?")
            ->execute([$cobranca['id'], $faturaId]);
 
-        $composicao = $valorImposto > 0
-            ? " (líquido R$ " . number_format($valorLiquido, 2, ',', '.') . " + imposto R$ " . number_format($valorImposto, 2, ',', '.') . ")"
-            : "";
         echo "- $nome: GERADO — R$ " . number_format($valor, 2, ',', '.') . "$composicao venc. $vencimento\n";
         $gerados++;
+        $totalGerado += $valor;
     } catch (Throwable $e) {
         echo "- $nome: ERRO ao criar cobrança — " . $e->getMessage() . " (fatura #$faturaId ficou como 'a_gerar', não perdida)\n";
         error_log("Falha ao gerar cobrança da fatura $faturaId: " . $e->getMessage());
@@ -343,7 +375,7 @@ foreach ($contratos as $contrato) {
     }
 }
 
-echo "\n=== Resumo (recorrentes): $gerados gerada(s), $pulados pulada(s), $erros erro(s) ===\n";
+echo "\n=== Resumo (recorrentes): $gerados " . ($simular ? "simulada(s)" : "gerada(s)") . ", $pulados pulada(s), $erros erro(s) — total R$ " . number_format($totalGerado, 2, ',', '.') . " ===\n";
 
 // ---------------------------------------------------------------------
 // Projetos parcelados — gera só a PRÓXIMA parcela pendente de cada
@@ -416,6 +448,12 @@ foreach ($projetos as $projeto) {
 
     $descricaoParcela = $projeto['descricao_servico'] ?: "Newsiga — parcela {$parcela['numero']} — contrato #{$projeto['contrato_id']}";
 
+    if ($simular) {
+        echo "- $nomeProjeto (contrato #{$projeto['contrato_id']}): SIMULADO — geraria parcela nº {$parcela['numero']} — R$ " . number_format((float) $parcela['valor'], 2, ',', '.') . " venc. {$parcela['vencimento']}\n";
+        $geradosProjetos++;
+        continue;
+    }
+
     try {
         $cobranca = $asaas->criarCobranca(
             $projeto['asaas_customer_id'],
@@ -436,4 +474,4 @@ foreach ($projetos as $projeto) {
     }
 }
 
-echo "\n=== Resumo (projetos parcelados): $geradosProjetos gerada(s), $puladosProjetos pulada(s), $errosProjetos erro(s) ===\n";
+echo "\n=== Resumo (projetos parcelados): $geradosProjetos " . ($simular ? "simulada(s)" : "gerada(s)") . ", $puladosProjetos pulada(s), $errosProjetos erro(s) ===\n";
