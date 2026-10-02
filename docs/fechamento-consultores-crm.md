@@ -11,7 +11,10 @@ O cálculo foi conferido com setembro/2026 por linha de comando. A tela e o lan�
 O que saiu diferente do plano abaixo:
 
 - **Só uma mudança de schema.** `clientes.movidesk_organization` já existia, vazia; só foram acrescentadas `valor_adicional` e `observacao` em `despesas_competencia` (ver `docs/mudancas-banco.md`, 02/10/2026).
-- **Tron passou a R$ 70/h** (era R$ 50) a pedido do Felipe em 02/10. Continua sendo um contrato próprio do Robson, editável na tela do contrato. Com isso o Robson de setembro dá R$ 6.181,33, o mesmo valor da planilha.
+- **Tron passou a R$ 70/h** (era R$ 50) a pedido do Felipe em 02/10. Como ficou igual à regra geral, o Felipe concluiu o contrato "Valor hora Tron Soluções" (#4) e as horas da Tron caem na regra geral do Robson. O Robson de setembro dá R$ 6.181,33, o mesmo valor da planilha.
+- **Departamentos viram a empresa.** No Movidesk a Noronha (e a Pernambuco Química) separam os solicitantes em departamentos — pessoas do tipo 4, vinculadas à empresa. O cálculo troca o departamento pela empresa (`movidesk_empresa_dos_departamentos()`, uma consulta a mais por prévia).
+- **Mais de um adicional por despesa**, cada um com valor e motivo. No banco ficam somados em `valor_adicional`; com mais de um, a `observacao` lista o valor de cada um.
+- **A tela foi redesenhada** depois da primeira versão (tabela larga): um cartão por fornecedor, horas por cliente em etiquetas, adicional recolhido, barra fixa com o total.
 - **Um lançamento por contrato**, como já era. O Robson sai em várias linhas (Tron, regra geral, fixos).
 - **Toda hora apontada é paga**, inclusive em demanda interna ("Financeiro", "Contabilidade"...) — confirmado pelo Felipe. Caem na regra geral do consultor.
 - **Prudencial Contabilidade é a empresa do Bruno Silva** (contador da Newsiga, que às vezes atua como consultor). O vínculo dela com "Robson Augusto" no Movidesk era engano e foi removido. O Bruno não aparece no Movidesk como consultor (julho a setembro/2026): as horas dele são digitadas na tela.
