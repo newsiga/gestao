@@ -100,6 +100,7 @@
       <div class="eyebrow">despesas de fornecedor</div>
       <h1>Fluxo de caixa: receita <em>menos</em> despesa.</h1>
     </div>
+    <a href="crm-newsiga-fechamento-consultores.php" style="font-family:var(--font-ui); font-size:13px; font-weight:700; color:var(--forest); border:1px solid var(--border); background:var(--white); padding:10px 18px; border-radius:8px; text-decoration:none;">Fechamento de consultores →</a>
   </div>
 
   <div class="period-bar">
@@ -330,12 +331,17 @@
       const linkEditar = d.origem === 'manual'
         ? `<a href="crm-newsiga-lancar-despesa.php?id=${d.id}" style="color:var(--forest); font-weight:600; font-size:13px; text-decoration:none; margin-right:12px;">editar</a>`
         : '';
-      const botaoExcluir = (d.origem === 'manual' && d.status !== 'pago')
+      // Lançamento vindo do fechamento de consultores não tem "editar"
+      // (o valor nasce do cálculo): pra corrigir, exclui e lança de
+      // novo pela tela do fechamento.
+      const botaoExcluir = (d.status !== 'pago')
         ? `<a href="#" class="excluir-link" data-id="${d.id}" style="color:var(--red); font-weight:600; font-size:13px; text-decoration:none;">excluir</a>`
         : '';
+      const adicional = Number(d.valor_adicional) > 0 ? `inclui ${fmt(d.valor_adicional)} de adicional` : '';
+      const observacao = [adicional, d.observacao].filter(Boolean).join(' — ');
       return `
         <tr>
-          <td class="name">${d.fornecedor_nome}<div style="color:var(--muted); font-weight:400; font-size:12.5px;">${d.contrato_descricao || ''}</div></td>
+          <td class="name">${d.fornecedor_nome}<div style="color:var(--muted); font-weight:400; font-size:12.5px;">${d.contrato_descricao || ''}</div>${observacao ? `<div style="color:var(--muted); font-weight:400; font-size:12.5px; font-style:italic;">${observacao}</div>` : ''}</td>
           <td>${d.competencia}</td>
           <td>${d.vencimento.split('-').reverse().join('/')}</td>
           <td>${fmt(d.valor)}${origemPill}</td>

@@ -167,6 +167,67 @@ function movidesk_resumo_consumo(string $nomeContratoMovidesk, string $competenc
 }
 
 /**
+ * Horas apontadas no Movidesk numa competência, por consultor e por
+ * cliente — base do fechamento de consultores (contas a pagar). Vem da
+ * API de tickets, não do timeAgreementConsumption: aquele só cobre
+ * clientes com banco de horas, e o consultor é pago por toda hora
+ * apontada, inclusive em cliente de valor fixo e em demandas internas.
+ *
+ * Consultor = quem criou o apontamento. Cliente = organização do
+ * primeiro cliente do ticket (ou o nome dele, quando não tem
+ * organização). Usa as horas apontadas, nunca o valor cobrado do
+ * cliente: ticket com valor zerado por acordo comercial continua
+ * valendo pra pagar o consultor.
+ *
+ * @return array<string, array<string, float>> [consultor][cliente] => horas
+ */
+function movidesk_horas_por_consultor(string $competencia): array
+{
+    $inicio = "$competencia-01T00:00:00.00z";
+    $fim = date('Y-m-01', strtotime("$competencia-01 +1 month")) . 'T00:00:00.00z';
+    $porPagina = 100;
+
+    $horas = [];
+    $pagina = 0;
+    do {
+        if ($pagina > 0) {
+            sleep(6); // limite de requisições do Movidesk
+        }
+        $lote = movidesk_get('tickets', [
+            '$select' => 'id',
+            '$expand' => 'clients($select=businessName;$expand=organization($select=businessName)),actions($select=id;$expand=timeAppointments($expand=createdBy($select=businessName)))',
+            '$filter' => "actions/any(a: a/timeAppointments/any(t: t/date ge $inicio and t/date lt $fim))",
+            '$top' => $porPagina,
+            '$skip' => $pagina * $porPagina,
+        ]);
+
+        foreach ($lote as $ticket) {
+            $cliente = (string) ($ticket['clients'][0]['organization']['businessName'] ?? $ticket['clients'][0]['businessName'] ?? '');
+            if ($cliente === '') {
+                $cliente = '(sem cliente)';
+            }
+            foreach (($ticket['actions'] ?? []) as $acao) {
+                foreach (($acao['timeAppointments'] ?? []) as $apontamento) {
+                    // O filtro traz o ticket inteiro — descarta os
+                    // apontamentos dele que são de outros meses.
+                    if (substr((string) ($apontamento['date'] ?? ''), 0, 7) !== $competencia) {
+                        continue;
+                    }
+                    $consultor = (string) ($apontamento['createdBy']['businessName'] ?? '');
+                    if ($consultor === '') {
+                        $consultor = '(sem consultor)';
+                    }
+                    $horas[$consultor][$cliente] = ($horas[$consultor][$cliente] ?? 0.0) + movidesk_horas_apontamento($apontamento);
+                }
+            }
+        }
+        $pagina++;
+    } while (count($lote) === $porPagina && $pagina < 50);
+
+    return $horas;
+}
+
+/**
  * Busca a definição completa de um contrato de horas no Movidesk,
  * incluindo typeActivities (franquia, R$/h normal e R$/h excedente por
  * tipo de hora/atividade) — a mesma fonte de dados que a área do

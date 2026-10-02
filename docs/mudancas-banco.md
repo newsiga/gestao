@@ -158,3 +158,61 @@ Coluna nullable, adicionada sem risco (as 13 linhas já existentes viram
 `cliente_id = NULL`, que é o valor correto — "regra geral" — pra todas
 elas). Também foi criada `atualizar-contrato-fornecedor.php` (edição de
 contrato, que não existia até então).
+
+---
+
+## 2026-10-02 — Fechamento de consultores (adicional/observação na despesa + vínculos com o Movidesk)
+
+Contexto completo em `docs/fechamento-consultores-crm.md`. Uma mudança
+de schema (só acrescenta colunas) e três acertos de dados, todos
+necessários pra tela `crm-newsiga-fechamento-consultores.php`.
+
+**Ordem obrigatória:** aplicar este SQL ANTES do deploy do código — o
+`listar-despesas-competencia.php` novo já seleciona as duas colunas, e
+a tela de Despesas quebra se o código subir primeiro.
+
+Backup antes: exportar `despesas_competencia`, `clientes`,
+`contratos_fornecedor` e `fornecedores` (phpMyAdmin → Exportar).
+
+```sql
+-- 1. Schema: valor adicional (despesa, comissão, participação em
+--    projeto) e observação com o motivo. `valor` continua sendo o total.
+ALTER TABLE despesas_competencia
+    ADD COLUMN valor_adicional DECIMAL(10,2) NULL AFTER valor,
+    ADD COLUMN observacao VARCHAR(255) NULL AFTER origem;
+
+-- 2. Cliente do CRM -> nome da organização no Movidesk. A coluna
+--    clientes.movidesk_organization já existia, vazia e sem uso.
+--    Os três hotéis são uma organização só no Movidesk.
+UPDATE clientes SET movidesk_organization = 'Dragão'           WHERE id = 5;
+UPDATE clientes SET movidesk_organization = 'Fiabesa'          WHERE id = 10;
+UPDATE clientes SET movidesk_organization = 'Ocaporã'          WHERE id IN (6, 7, 8);
+UPDATE clientes SET movidesk_organization = 'Becker'           WHERE id = 2;
+UPDATE clientes SET movidesk_organization = 'Mari Louças'      WHERE id = 1;
+UPDATE clientes SET movidesk_organization = 'Noronha Pescados' WHERE id = 3;
+UPDATE clientes SET movidesk_organization = 'Tron Soluções'    WHERE id = 9;
+
+-- 3. Contratos do Robson -> cliente. Sem isso todos contam como "regra
+--    geral" e o cálculo não sabe qual taxa usar.
+UPDATE contratos_fornecedor SET cliente_id = 9  WHERE id = 4;        -- Tron, R$ 50/h
+UPDATE contratos_fornecedor SET cliente_id = 8  WHERE id = 5;        -- Ocaporã, fixo
+UPDATE contratos_fornecedor SET cliente_id = 2  WHERE id = 6;        -- Becker, fixo
+UPDATE contratos_fornecedor SET cliente_id = 12 WHERE id = 9;        -- MobCode
+UPDATE contratos_fornecedor SET cliente_id = 11 WHERE id IN (10, 11); -- HubVision
+
+-- 4. Fornecedor -> consultor no Movidesk. A Prudencial (contabilidade
+--    do Bruno Silva) estava vinculada ao Robson por engano.
+UPDATE fornecedores SET movidesk_technician_name = NULL              WHERE id = 7;
+UPDATE fornecedores SET movidesk_technician_name = 'Luis Felipe'     WHERE id = 3;
+UPDATE fornecedores SET movidesk_technician_name = 'Normando Junior' WHERE id = 1;
+```
+
+Pernambuco Química, HubVision e MobCode ficam sem organização: a
+primeira não teve apontamento com nome de organização identificável de
+julho a setembro/2026, e as horas das outras duas vêm do sistema dos
+parceiros, não do Movidesk (por isso os contratos do Robson pra elas
+continuam com valor digitado à mão).
+
+**Aplicação:** pelo Felipe, via phpMyAdmin — a gravação em produção por
+SSH foi bloqueada pelas permissões da sessão do Claude Code. Registrar
+aqui a data quando for aplicado.
