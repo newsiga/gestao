@@ -1,6 +1,30 @@
 # Fechamento de consultores (contas a pagar semi-automático) — CRM Newsiga
 
-Plano combinado com o Felipe em 01/10/2026 e **ainda não iniciado**. Nada de código nem de banco foi alterado para isto. Complementa o `docs/despesas-fornecedores-crm.md` (a "fase 2" que lá aparece como cálculo automático via Movidesk).
+Plano combinado com o Felipe em 01/10/2026 e **implementado em 02/10/2026**. Complementa o `docs/despesas-fornecedores-crm.md` (a "fase 2" que lá aparece como cálculo automático via Movidesk).
+
+## Estado em 02/10/2026
+
+No ar: tela `crm/crm-newsiga-fechamento-consultores.php` (botão na tela de Despesas), cálculo em `crm/calculo-fechamento-consultores.php`, prévia em `crm/previa-fechamento-consultores.php`, lançamento em lote em `crm/lancar-fechamento-consultores.php`. A regra de cálculo está descrita no cabeçalho do arquivo de cálculo.
+
+O cálculo foi conferido com setembro/2026 por linha de comando. A tela e o lançamento em lote **ainda não foram usados no navegador** — o primeiro uso real é o fechamento de setembro, pelo Felipe.
+
+O que saiu diferente do plano abaixo:
+
+- **Só uma mudança de schema.** `clientes.movidesk_organization` já existia, vazia; só foram acrescentadas `valor_adicional` e `observacao` em `despesas_competencia` (ver `docs/mudancas-banco.md`, 02/10/2026).
+- **Tron passou a R$ 70/h** (era R$ 50) a pedido do Felipe em 02/10. Continua sendo um contrato próprio do Robson, editável na tela do contrato. Com isso o Robson de setembro dá R$ 6.181,33, o mesmo valor da planilha.
+- **Um lançamento por contrato**, como já era. O Robson sai em várias linhas (Tron, regra geral, fixos).
+- **Toda hora apontada é paga**, inclusive em demanda interna ("Financeiro", "Contabilidade"...) — confirmado pelo Felipe. Caem na regra geral do consultor.
+- **Prudencial Contabilidade é a empresa do Bruno Silva** (contador da Newsiga, que às vezes atua como consultor). O vínculo dela com "Robson Augusto" no Movidesk era engano e foi removido. O Bruno não aparece no Movidesk como consultor (julho a setembro/2026): as horas dele são digitadas na tela.
+- **A tela lista todos os contratos de fornecedor ativos**, não só consultores, com o valor do contrato como sugestão.
+- **Lançamento vindo do fechamento pode ser excluído** enquanto não estiver pago (antes só o manual podia) — é o jeito de corrigir: exclui e lança de novo pela tela.
+
+Ficou para depois:
+
+- Campo na tela de cliente para `movidesk_organization` (hoje só por SQL). Só faz falta para cliente com taxa própria ou fixo de algum consultor.
+- O Felipe aparece num aviso da tela todo mês (aponta horas no Movidesk e não é fornecedor).
+- Adicionais recorrentes (fim de semana, presencial) continuam manuais.
+
+O restante deste documento é o plano original, mantido como registro.
 
 Como todo documento desta pasta, é ponto de partida: se o código real divergir do que está aqui, o código prevalece (ver `README.md`, seção 1).
 

@@ -194,7 +194,7 @@ UPDATE clientes SET movidesk_organization = 'Tron Soluções'    WHERE id = 9;
 
 -- 3. Contratos do Robson -> cliente. Sem isso todos contam como "regra
 --    geral" e o cálculo não sabe qual taxa usar.
-UPDATE contratos_fornecedor SET cliente_id = 9  WHERE id = 4;        -- Tron, R$ 50/h
+UPDATE contratos_fornecedor SET cliente_id = 9, valor_hora = 70.00 WHERE id = 4; -- Tron (taxa subiu de R$ 50 pra R$ 70 a pedido do Felipe)
 UPDATE contratos_fornecedor SET cliente_id = 8  WHERE id = 5;        -- Ocaporã, fixo
 UPDATE contratos_fornecedor SET cliente_id = 2  WHERE id = 6;        -- Becker, fixo
 UPDATE contratos_fornecedor SET cliente_id = 12 WHERE id = 9;        -- MobCode
@@ -213,6 +213,9 @@ julho a setembro/2026, e as horas das outras duas vêm do sistema dos
 parceiros, não do Movidesk (por isso os contratos do Robson pra elas
 continuam com valor digitado à mão).
 
-**Aplicação:** pelo Felipe, via phpMyAdmin — a gravação em produção por
-SSH foi bloqueada pelas permissões da sessão do Claude Code. Registrar
-aqui a data quando for aplicado.
+**Aplicação:** em 02/10/2026, pelo Felipe, via phpMyAdmin — a gravação
+em produção por SSH é bloqueada pelas permissões da sessão do Claude
+Code (leitura é liberada). Conferido depois por consulta: as duas
+colunas criadas e os 18 vínculos preenchidos. Na primeira tentativa só
+o `ALTER` teve efeito; os `UPDATE` foram rodados de novo, sem os
+comentários entre eles.
