@@ -25,9 +25,10 @@
  *      fixo, não é paga por hora (ex: Robson na Ocaporã e na Becker).
  *   2. Cliente com contrato hora_aberta próprio: taxa desse contrato
  *      (ex: Robson na Tron, R$ 50/h).
- *   3. Qualquer outro cliente, inclusive demanda interna (Financeiro,
- *      Contabilidade...): contrato hora_aberta sem cliente, a "regra
- *      geral" do fornecedor — toda hora apontada é paga.
+ *   3. Qualquer outro cliente: contrato hora_aberta sem cliente, a
+ *      "regra geral" do fornecedor — toda hora apontada é paga.
+ *      (Departamentos do Movidesk, como Financeiro e Comercial da
+ *      Noronha, já chegam aqui trocados pela empresa a que pertencem.)
  *   4. Fornecedor só com fixo sem cliente (ex: Normando, Luis Felipe):
  *      todas as horas ficam como informação nesse fixo.
  */

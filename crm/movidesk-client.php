@@ -175,9 +175,13 @@ function movidesk_resumo_consumo(string $nomeContratoMovidesk, string $competenc
  *
  * Consultor = quem criou o apontamento. Cliente = organização do
  * primeiro cliente do ticket (ou o nome dele, quando não tem
- * organização). Usa as horas apontadas, nunca o valor cobrado do
- * cliente: ticket com valor zerado por acordo comercial continua
- * valendo pra pagar o consultor.
+ * organização). Quando a organização é um DEPARTAMENTO (a Noronha, por
+ * exemplo, separa os solicitantes em Financeiro, Comercial, PCP...),
+ * vale a empresa a que o departamento pertence — ver
+ * movidesk_empresa_dos_departamentos().
+ *
+ * Usa as horas apontadas, nunca o valor cobrado do cliente: ticket com
+ * valor zerado por acordo comercial continua valendo pra pagar o consultor.
  *
  * @return array<string, array<string, float>> [consultor][cliente] => horas
  */
@@ -187,7 +191,7 @@ function movidesk_horas_por_consultor(string $competencia): array
     $fim = date('Y-m-01', strtotime("$competencia-01 +1 month")) . 'T00:00:00.00z';
     $porPagina = 100;
 
-    $horas = [];
+    $apontamentos = []; // [consultor, cliente, id do departamento ou null, horas]
     $pagina = 0;
     do {
         if ($pagina > 0) {
@@ -195,17 +199,19 @@ function movidesk_horas_por_consultor(string $competencia): array
         }
         $lote = movidesk_get('tickets', [
             '$select' => 'id',
-            '$expand' => 'clients($select=businessName;$expand=organization($select=businessName)),actions($select=id;$expand=timeAppointments($expand=createdBy($select=businessName)))',
+            '$expand' => 'clients($select=businessName;$expand=organization($select=id,businessName,personType)),actions($select=id;$expand=timeAppointments($expand=createdBy($select=businessName)))',
             '$filter' => "actions/any(a: a/timeAppointments/any(t: t/date ge $inicio and t/date lt $fim))",
             '$top' => $porPagina,
             '$skip' => $pagina * $porPagina,
         ]);
 
         foreach ($lote as $ticket) {
-            $cliente = (string) ($ticket['clients'][0]['organization']['businessName'] ?? $ticket['clients'][0]['businessName'] ?? '');
+            $organizacao = $ticket['clients'][0]['organization'] ?? null;
+            $cliente = (string) ($organizacao['businessName'] ?? $ticket['clients'][0]['businessName'] ?? '');
             if ($cliente === '') {
                 $cliente = '(sem cliente)';
             }
+            $departamentoId = ($organizacao && (int) ($organizacao['personType'] ?? 0) === 4) ? (string) $organizacao['id'] : null;
             foreach (($ticket['actions'] ?? []) as $acao) {
                 foreach (($acao['timeAppointments'] ?? []) as $apontamento) {
                     // O filtro traz o ticket inteiro — descarta os
@@ -217,14 +223,53 @@ function movidesk_horas_por_consultor(string $competencia): array
                     if ($consultor === '') {
                         $consultor = '(sem consultor)';
                     }
-                    $horas[$consultor][$cliente] = ($horas[$consultor][$cliente] ?? 0.0) + movidesk_horas_apontamento($apontamento);
+                    $apontamentos[] = [$consultor, $cliente, $departamentoId, movidesk_horas_apontamento($apontamento)];
                 }
             }
         }
         $pagina++;
     } while (count($lote) === $porPagina && $pagina < 50);
 
+    $empresaDoDepartamento = [];
+    if (array_filter(array_column($apontamentos, 2))) {
+        sleep(6); // limite de requisições do Movidesk
+        $empresaDoDepartamento = movidesk_empresa_dos_departamentos();
+    }
+
+    $horas = [];
+    foreach ($apontamentos as [$consultor, $cliente, $departamentoId, $horasApontadas]) {
+        if ($departamentoId !== null && isset($empresaDoDepartamento[$departamentoId])) {
+            $cliente = $empresaDoDepartamento[$departamentoId];
+        }
+        $horas[$consultor][$cliente] = ($horas[$consultor][$cliente] ?? 0.0) + $horasApontadas;
+    }
     return $horas;
+}
+
+/**
+ * Departamento → empresa a que ele pertence. No Movidesk, departamento é
+ * uma "pessoa" do tipo 4 (personType = 4), e a empresa vem no primeiro
+ * vínculo dele (relationships). Uma consulta só traz todos.
+ *
+ * @return array<string, string> [id do departamento] => nome da empresa
+ */
+function movidesk_empresa_dos_departamentos(): array
+{
+    $departamentos = movidesk_get('persons', [
+        '$select' => 'id,businessName,personType',
+        '$filter' => 'personType eq 4',
+        '$expand' => 'relationships($select=id,name)',
+        '$top' => 1000,
+    ]);
+
+    $empresas = [];
+    foreach ($departamentos as $departamento) {
+        $empresa = (string) ($departamento['relationships'][0]['name'] ?? '');
+        if ($empresa !== '') {
+            $empresas[(string) $departamento['id']] = $empresa;
+        }
+    }
+    return $empresas;
 }
 
 /**
