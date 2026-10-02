@@ -97,9 +97,12 @@
   .extras input[type=date]{height:34px; width:148px; font-size:13px; padding:0 10px;}
   .btn-adicional{font-family:var(--font-ui); font-size:12.5px; font-weight:700; color:var(--forest); background:none; border:none; cursor:pointer; padding:0; margin-left:auto;}
   .btn-adicional:hover{text-decoration:underline;}
-  .adicional-box{flex-basis:100%; display:none; grid-template-columns:168px minmax(0,1fr); gap:12px;}
-  .adicional-box.aberto{display:grid;}
-  .adicional-box input.adicional{text-align:right;}
+  .adicionais{flex-basis:100%; display:flex; flex-direction:column; gap:8px;}
+  .adicionais:empty{display:none;}
+  .adicional-item{display:grid; grid-template-columns:168px minmax(0,1fr) 42px; gap:12px;}
+  .adicional-item input.adicional{text-align:right;}
+  .btn-remover{height:42px; border-radius:8px; border:1px solid var(--border); background:var(--white); color:var(--muted); font-size:18px; line-height:1; cursor:pointer;}
+  .btn-remover:hover{color:var(--red); border-color:var(--red);}
 
   /* Linha já lançada: só leitura, uma faixa compacta */
   .linha.lancada{grid-template-columns:22px minmax(0,1fr) auto auto; align-items:center; padding:14px 22px; color:var(--muted);}
@@ -124,7 +127,8 @@
     .linha{grid-template-columns:22px minmax(0,1fr); row-gap:14px;}
     .col-horas, .col-valor{grid-column:2; text-align:left;}
     .linha input.base{text-align:left;}
-    .adicional-box{grid-template-columns:1fr;}
+    .adicional-item{grid-template-columns:minmax(0,1fr) 42px;}
+    .adicional-item .obs{grid-column:1 / -1; grid-row:2;}
   }
 </style>
 </head>
@@ -292,10 +296,7 @@
         <div class="extras">
           <label>Vencimento <input type="date" class="venc" value="${l.vencimento}"></label>
           <button type="button" class="btn-adicional">+ Adicional (despesa, comissão, projeto)</button>
-          <div class="adicional-box">
-            <input type="text" inputmode="decimal" class="adicional" placeholder="R$ 0,00">
-            <input type="text" class="obs" maxlength="255" placeholder="Motivo — ex: atendimento presencial na Fiabesa">
-          </div>
+          <div class="adicionais"></div>
         </div>
       </div>`;
   }
@@ -344,29 +345,37 @@
 
     container.querySelectorAll('.linha[data-id]').forEach(linha => {
       const base = linha.querySelector('.base');
-      const adicional = linha.querySelector('.adicional');
       const sel = linha.querySelector('.sel');
+      const lista = linha.querySelector('.adicionais');
+      const btnAdicional = linha.querySelector('.btn-adicional');
 
       const aoMudarValor = () => {
-        sel.checked = moedaParaNumero(base) + moedaParaNumero(adicional) > 0;
+        sel.checked = totalDaLinha(linha) > 0;
         atualizarResumo();
       };
       base.addEventListener('input', () => { aplicarMascaraMoeda(base); aoMudarValor(); });
-      adicional.addEventListener('input', () => { aplicarMascaraMoeda(adicional); aoMudarValor(); });
       sel.addEventListener('change', atualizarResumo);
 
-      linha.querySelector('.btn-adicional').addEventListener('click', (e) => {
-        const box = linha.querySelector('.adicional-box');
-        const abrir = !box.classList.contains('aberto');
-        box.classList.toggle('aberto', abrir);
-        e.target.textContent = abrir ? '− Remover adicional' : '+ Adicional (despesa, comissão, projeto)';
-        if (abrir) {
-          adicional.focus();
-        } else {
-          adicional.value = '';
-          linha.querySelector('.obs').value = '';
+      // Uma despesa pode ter vários adicionais, cada um com seu valor e
+      // seu motivo (ex: hora de fim de semana + ajuda de custo de um
+      // atendimento presencial) — todos somam no total da mesma despesa.
+      btnAdicional.addEventListener('click', () => {
+        const item = document.createElement('div');
+        item.className = 'adicional-item';
+        item.innerHTML = `
+          <input type="text" inputmode="decimal" class="adicional" placeholder="R$ 0,00">
+          <input type="text" class="obs" maxlength="120" placeholder="Motivo — ex: atendimento presencial na Fiabesa">
+          <button type="button" class="btn-remover" title="Remover este adicional">×</button>`;
+        const valor = item.querySelector('.adicional');
+        valor.addEventListener('input', () => { aplicarMascaraMoeda(valor); aoMudarValor(); });
+        item.querySelector('.btn-remover').addEventListener('click', () => {
+          item.remove();
+          btnAdicional.textContent = lista.children.length ? '+ Outro adicional' : '+ Adicional (despesa, comissão, projeto)';
           aoMudarValor();
-        }
+        });
+        lista.appendChild(item);
+        btnAdicional.textContent = '+ Outro adicional';
+        valor.focus();
       });
 
       // Contrato por hora sem horas no Movidesk: digita as horas e o
@@ -385,14 +394,15 @@
     atualizarResumo();
   }
 
-  const totalDaLinha = (linha) => moedaParaNumero(linha.querySelector('.base')) + moedaParaNumero(linha.querySelector('.adicional'));
+  const somaAdicionais = (linha) => Array.from(linha.querySelectorAll('.adicional')).reduce((s, el) => s + moedaParaNumero(el), 0);
+  const totalDaLinha = (linha) => moedaParaNumero(linha.querySelector('.base')) + somaAdicionais(linha);
   const linhasMarcadas = () => Array.from(document.querySelectorAll('.linha[data-id]')).filter(l => l.querySelector('.sel').checked);
 
   function atualizarResumo() {
     // Por linha: esmaece a desmarcada e mostra o total quando há adicional
     document.querySelectorAll('.linha[data-id]').forEach(linha => {
       linha.classList.toggle('desmarcada', !linha.querySelector('.sel').checked);
-      const temAdicional = moedaParaNumero(linha.querySelector('.adicional')) > 0;
+      const temAdicional = somaAdicionais(linha) > 0;
       const totalEl = linha.querySelector('.linha-total');
       totalEl.style.display = temAdicional ? 'block' : 'none';
       totalEl.querySelector('b').textContent = fmt(totalDaLinha(linha));
@@ -459,18 +469,39 @@
     const msg = document.getElementById('form-msg');
     const competencia = document.getElementById('period-select').value;
 
+    const problemas = [];
     const itens = linhasMarcadas().map(linha => {
       const l = linhasAtuais.find(x => String(x.contrato_fornecedor_id) === linha.dataset.id);
+
+      // Os adicionais viram um valor só (a soma) e uma observação só no
+      // banco. Com mais de um, a observação lista o valor de cada um,
+      // pra não perder de onde veio o total.
+      const adicionais = Array.from(linha.querySelectorAll('.adicional-item'))
+        .map(item => ({ valor: moedaParaNumero(item.querySelector('.adicional')), motivo: item.querySelector('.obs').value.trim() }))
+        .filter(a => a.valor > 0 || a.motivo !== '');
+      if (adicionais.some(a => a.valor <= 0)) problemas.push(`${l.fornecedor_nome}: há um adicional com motivo e sem valor.`);
+      if (adicionais.some(a => a.motivo === '')) problemas.push(`${l.fornecedor_nome}: informe o motivo de cada adicional.`);
+      const observacao = adicionais.length > 1
+        ? adicionais.map(a => `${fmt(a.valor)} ${a.motivo}`).join('; ')
+        : (adicionais[0] ? adicionais[0].motivo : '');
+      if (observacao.length > 255) problemas.push(`${l.fornecedor_nome}: os motivos dos adicionais somam mais de 255 caracteres — encurte os textos.`);
+
       return {
         contrato_fornecedor_id: Number(linha.dataset.id),
         horas: l.calculo === 'movidesk' ? l.horas : (parseFloat(linha.dataset.horas) || null),
         valor_base: moedaParaNumero(linha.querySelector('.base')),
-        valor_adicional: moedaParaNumero(linha.querySelector('.adicional')),
-        observacao: linha.querySelector('.obs').value.trim(),
+        valor_adicional: Math.round(adicionais.reduce((s, a) => s + a.valor, 0) * 100) / 100,
+        observacao,
         vencimento: linha.querySelector('.venc').value,
         calculo: l.calculo,
       };
     });
+    if (problemas.length) {
+      msg.className = 'form-msg error';
+      msg.textContent = problemas.join(' ');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const total = itens.reduce((s, i) => s + i.valor_base + i.valor_adicional, 0);
     if (!confirm(`Lançar ${itens.length} despesa${itens.length === 1 ? '' : 's'} da competência ${competencia}, no total de ${fmt(total)}?`)) return;
 
