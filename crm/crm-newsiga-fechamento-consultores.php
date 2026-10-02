@@ -17,70 +17,115 @@
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{background:var(--cream); color:var(--forest); font-family:var(--font-ui); line-height:1.5;}
-  .wrap{max-width:1280px; margin:0 auto; padding:0 32px;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 32px;}
   nav{border-bottom:1px solid var(--border); padding:22px 0;}
-  nav .wrap{display:flex; align-items:center; justify-content:space-between;}
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; max-width:1160px;}
   .logo{font-family:var(--font-display); font-weight:800; font-size:19px; color:var(--forest); text-decoration:none;}
   .logo span{color:var(--muted); font-weight:600; font-size:13px; margin-left:8px;}
   .nav-links{display:flex; gap:22px; font-size:13.5px; color:var(--muted); font-weight:600;}
   .nav-links a{color:var(--muted); text-decoration:none;}
   .nav-links a.active{color:var(--forest);}
   .btn-nav{font-family:var(--font-ui); font-size:13px; font-weight:700; background:var(--forest); color:var(--white); padding:10px 18px; border-radius:8px; text-decoration:none;}
-  .page-head{padding:44px 0 8px;}
+
+  .page-head{padding:44px 0 0; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:20px;}
   .eyebrow{font-family:var(--font-ui); font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;}
   h1{font-family:var(--font-display); font-weight:800; font-size:32px; letter-spacing:-.01em;}
   h1 em{font-family:var(--font-italic); font-style:italic; font-weight:400;}
-  .page-sub{color:var(--muted); font-size:14.5px; margin-top:14px; max-width:78ch;}
-
-  .period-bar{display:flex; align-items:center; gap:12px; margin:24px 0;}
-  .period-label{font-size:13px; color:var(--muted); font-weight:600;}
+  .period-label{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:8px;}
   .period-select{
     font-family:var(--font-display); font-weight:700; font-size:14.5px; color:var(--forest);
     background:var(--white); border:1px solid var(--border); border-radius:8px; padding:10px 16px; cursor:pointer;
   }
 
-  .avisos{background:#f3e6c9; color:#8a6414; border-radius:8px; padding:14px 16px; font-size:13.5px; margin-bottom:20px; display:none;}
+  .kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:28px 0 24px;}
+  .kpi{background:var(--white); border:1px solid var(--border); border-radius:12px; padding:20px 22px;}
+  .kpi .label{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:10px;}
+  .kpi .value{font-family:var(--font-display); font-size:24px; font-weight:800;}
+  .kpi .delta{font-size:12.5px; color:var(--muted); margin-top:4px;}
+
+  .avisos{background:#f3e6c9; color:#8a6414; border-radius:10px; padding:14px 18px; font-size:13.5px; margin-bottom:16px; display:none;}
   .avisos div + div{margin-top:6px;}
-
-  .panel{background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:20px;}
-  .table-wrap{overflow-x:auto;}
-  table{width:100%; border-collapse:collapse; font-size:13.5px;}
-  th{text-align:left; font-family:var(--font-ui); font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-weight:700; padding:14px 12px; border-bottom:1px solid var(--border); white-space:nowrap;}
-  td{padding:14px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
-  th:first-child, td:first-child{padding-left:22px;}
-  th:last-child, td:last-child{padding-right:22px;}
-  tr:last-child td{border-bottom:none;}
-  tr.fornecedor-header td{background:var(--card); font-family:var(--font-display); font-weight:700; font-size:13.5px; padding-top:12px; padding-bottom:12px;}
-  tr.fornecedor-header .categoria{color:var(--muted); font-family:var(--font-ui); font-weight:600; font-size:12px; margin-left:8px;}
-  tr.lancada td{color:var(--muted);}
-  td.total{font-family:var(--font-display); font-weight:700; white-space:nowrap; text-align:right;}
-  th.num{text-align:right;}
-  .contrato-desc{font-weight:600;}
-  .detalhe{color:var(--muted); font-size:12.5px; margin-top:4px;}
-  .detalhe.aviso{color:#8a6414;}
-  .horas{white-space:nowrap;}
-
-  td input[type=text], td input[type=date]{height:38px; border-radius:6px; border:1px solid var(--border); background:var(--white); padding:0 10px; font-size:13.5px; font-family:var(--font-ui); color:var(--forest);}
-  td input:focus{outline:none; border-color:var(--forest);}
-  td input.money{width:120px; text-align:right;}
-  td input.obs{width:100%; min-width:180px;}
-  td input[type=date]{width:140px;}
-  td input[type=checkbox]{width:17px; height:17px; margin-top:10px; cursor:pointer;}
-
-  .status-pill{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:5px 12px; border-radius:20px; white-space:nowrap; background:#dbe9d8; color:#2f5c3f;}
-  .calculo-pill{font-size:11px; font-weight:600; color:var(--muted); margin-left:6px;}
-
-  .rodape{display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:60px;}
-  .rodape .resumo{font-size:14px; color:var(--muted);}
-  .rodape .resumo b{font-family:var(--font-display); font-size:20px; color:var(--forest); margin-left:8px;}
-  .btn-primary{font-family:var(--font-ui); font-weight:700; font-size:14.5px; background:var(--forest); color:var(--white); border:none; padding:15px 26px; border-radius:8px; cursor:pointer;}
-  .btn-primary:disabled{opacity:.6; cursor:not-allowed;}
-  .form-msg{margin-bottom:20px; padding:14px 16px; border-radius:8px; font-size:13.5px; display:none;}
+  .form-msg{margin-bottom:16px; padding:14px 18px; border-radius:10px; font-size:13.5px; display:none;}
   .form-msg.ok{background:#dbe9d8; color:#2f5c3f; display:block;}
   .form-msg.error{background:#f1d9d4; color:var(--red); display:block;}
-  .empty-state{padding:60px 22px; text-align:center; color:var(--muted); font-size:14px;}
+  .empty-state{background:var(--white); border:1px solid var(--border); border-radius:12px; padding:60px 22px; text-align:center; color:var(--muted); font-size:14px;}
 
-  @media (max-width:860px){ .nav-links{display:none;} }
+  /* ---- Um cartão por fornecedor ---- */
+  .fornecedor{background:var(--white); border:1px solid var(--border); border-radius:12px; margin-bottom:14px; overflow:hidden;}
+  .fornecedor-head{display:flex; justify-content:space-between; align-items:center; gap:16px; padding:16px 22px; background:#faf9f5; border-bottom:1px solid var(--border);}
+  .fornecedor-nome{font-family:var(--font-display); font-weight:800; font-size:16px;}
+  .categoria{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); background:var(--card); border-radius:20px; padding:3px 10px; margin-left:10px; vertical-align:2px;}
+  .fornecedor-total{text-align:right; white-space:nowrap;}
+  .fornecedor-total small{display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .fornecedor-total b{font-family:var(--font-display); font-weight:800; font-size:17px;}
+
+  /* ---- Uma linha por contrato ---- */
+  .linha{display:grid; grid-template-columns:22px minmax(0,1fr) 96px 168px; column-gap:20px; padding:20px 22px; border-bottom:1px solid var(--border); align-items:start;}
+  .linha:last-child{border-bottom:none;}
+  .linha .sel{width:18px; height:18px; margin-top:3px; cursor:pointer; accent-color:var(--forest);}
+  .linha.desmarcada .conteudo, .linha.desmarcada .col-horas{opacity:.55;}
+
+  .contrato-titulo{font-weight:600; font-size:14.5px; line-height:1.4;}
+  .meta{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:8px; font-size:12.5px; color:var(--muted);}
+  .tag{font-size:11px; font-weight:700; border-radius:20px; padding:3px 10px; white-space:nowrap;}
+  .tag.movidesk{background:#e6f5bd; color:#3d5a08;}
+  .tag.fixo{background:var(--card); color:var(--forest);}
+  .tag.manual{background:#f3e6c9; color:#8a6414;}
+
+  .horas-clientes{margin-top:14px;}
+  .horas-clientes .legenda{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:8px;}
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{display:inline-flex; align-items:baseline; gap:8px; background:var(--cream); border-radius:6px; padding:5px 10px; font-size:12.5px; color:var(--forest);}
+  .chip b{font-family:var(--font-display); font-weight:700;}
+  .horas-clientes.informativo .chip{background:transparent; border:1px dashed var(--border); color:var(--muted);}
+  .linha-aviso{margin-top:12px; font-size:12.5px; color:#8a6414;}
+
+  .campo-label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:6px;}
+  .col-horas .horas-valor{font-family:var(--font-display); font-weight:700; font-size:17px; line-height:42px;}
+  .col-horas .horas-valor.vazio{color:var(--border);}
+  .col-valor{text-align:right;}
+  .linha input[type=text], .linha input[type=date]{height:42px; border-radius:8px; border:1px solid var(--border); background:var(--white); padding:0 12px; font-size:14px; font-family:var(--font-ui); color:var(--forest); width:100%;}
+  .linha input:focus{outline:none; border-color:var(--forest);}
+  .linha input.base{font-family:var(--font-display); font-weight:700; font-size:15.5px; text-align:right;}
+  .linha input.horas-input{font-family:var(--font-display); font-weight:700; font-size:15.5px;}
+  .linha-total{margin-top:8px; font-size:12.5px; color:var(--muted); display:none;}
+  .linha-total b{font-family:var(--font-display); color:var(--forest);}
+
+  /* Vencimento e adicional: segunda faixa da linha, discreta */
+  .extras{grid-column:2 / -1; display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-top:16px; padding-top:14px; border-top:1px dashed var(--border); font-size:12.5px; color:var(--muted);}
+  .extras label{display:flex; align-items:center; gap:8px; font-weight:600;}
+  .extras input[type=date]{height:34px; width:148px; font-size:13px; padding:0 10px;}
+  .btn-adicional{font-family:var(--font-ui); font-size:12.5px; font-weight:700; color:var(--forest); background:none; border:none; cursor:pointer; padding:0; margin-left:auto;}
+  .btn-adicional:hover{text-decoration:underline;}
+  .adicional-box{flex-basis:100%; display:none; grid-template-columns:168px minmax(0,1fr); gap:12px;}
+  .adicional-box.aberto{display:grid;}
+  .adicional-box input.adicional{text-align:right;}
+
+  /* Linha já lançada: só leitura, uma faixa compacta */
+  .linha.lancada{grid-template-columns:22px minmax(0,1fr) auto auto; align-items:center; padding:14px 22px; color:var(--muted);}
+  .linha.lancada .contrato-titulo{font-weight:500; font-size:13.5px;}
+  .linha.lancada .valor-lancado{font-family:var(--font-display); font-weight:700; font-size:14.5px; color:var(--forest); white-space:nowrap;}
+  .status-pill{font-family:var(--font-ui); font-size:11px; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap; background:#dbe9d8; color:#2f5c3f;}
+  .check-lancado{color:#2f5c3f; font-weight:800;}
+
+  .nota-rodape{font-size:12.5px; color:var(--muted); margin:6px 2px 110px;}
+
+  /* Barra fixa no rodapé: total + botão sempre à vista */
+  .barra{position:fixed; left:0; right:0; bottom:0; background:var(--forest); color:var(--white); z-index:10;}
+  .barra .wrap{display:flex; justify-content:space-between; align-items:center; gap:16px; padding-top:14px; padding-bottom:14px;}
+  .barra .resumo small{display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#a9b8b1;}
+  .barra .resumo b{font-family:var(--font-display); font-weight:800; font-size:22px;}
+  .btn-lancar{font-family:var(--font-ui); font-weight:700; font-size:14.5px; background:var(--lime); color:var(--forest); border:none; padding:14px 26px; border-radius:8px; cursor:pointer;}
+  .btn-lancar:disabled{opacity:.45; cursor:not-allowed;}
+
+  @media (max-width:860px){
+    .nav-links{display:none;}
+    .kpis{grid-template-columns:1fr;}
+    .linha{grid-template-columns:22px minmax(0,1fr); row-gap:14px;}
+    .col-horas, .col-valor{grid-column:2; text-align:left;}
+    .linha input.base{text-align:left;}
+    .adicional-box{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
@@ -102,37 +147,48 @@
 
 <div class="wrap">
   <div class="page-head">
-    <div class="eyebrow">contas a pagar — semi-automático</div>
-    <h1>Fechamento de <em>consultores</em>.</h1>
-    <p class="page-sub">As horas vêm do Movidesk e o valor é sugerido pela taxa de cada contrato. Revise, ajuste o que for exceção (despesa, comissão, participação em projeto) e lance só o que estiver marcado. Nada é gravado antes de você clicar em lançar.</p>
+    <div>
+      <div class="eyebrow">contas a pagar</div>
+      <h1>Fechamento de <em>consultores</em>.</h1>
+    </div>
+    <div>
+      <div class="period-label">Mês trabalhado</div>
+      <select class="period-select" id="period-select"></select>
+    </div>
   </div>
 
-  <div class="period-bar">
-    <div class="period-label">Competência (mês trabalhado)</div>
-    <select class="period-select" id="period-select"></select>
+  <div class="kpis">
+    <div class="kpi">
+      <div class="label">A lançar</div>
+      <div class="value" id="kpi-lancar">—</div>
+      <div class="delta" id="kpi-lancar-delta"></div>
+    </div>
+    <div class="kpi">
+      <div class="label">Horas pagas por hora</div>
+      <div class="value" id="kpi-horas">—</div>
+      <div class="delta">apontadas no Movidesk no mês</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Já lançado no mês</div>
+      <div class="value" id="kpi-lancado">—</div>
+      <div class="delta" id="kpi-lancado-delta"></div>
+    </div>
   </div>
 
   <div class="avisos" id="avisos"></div>
   <div class="form-msg" id="form-msg"></div>
 
-  <div class="panel">
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th></th><th>Contrato</th><th>Horas</th><th class="num">Valor calculado</th><th class="num">Adicional</th><th>Observação</th><th>Vencimento</th><th class="num">Total</th>
-          </tr>
-        </thead>
-        <tbody id="previa-tbody">
-          <tr><td colspan="8"><div class="empty-state">Carregando...</div></td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div id="fornecedores">
+    <div class="empty-state">Carregando...</div>
   </div>
 
-  <div class="rodape">
-    <div class="resumo"><span id="resumo-qtd">0 linhas marcadas</span><b id="resumo-total">R$ 0,00</b></div>
-    <button class="btn-primary" id="lancar-btn" disabled>Lançar selecionados</button>
+  <div class="nota-rodape" id="nota-rodape"></div>
+</div>
+
+<div class="barra">
+  <div class="wrap">
+    <div class="resumo"><small id="resumo-qtd">Nenhuma linha marcada</small><b id="resumo-total">R$ 0,00</b></div>
+    <button class="btn-lancar" id="lancar-btn" disabled>Lançar selecionados</button>
   </div>
 </div>
 
@@ -151,12 +207,17 @@
     const limpo = valorMascarado.replace(/[^\d,]/g, '').replace(/\.(?=\d{3},)/g, '');
     return limpo.replace(/\./g, '').replace(',', '.');
   }
-  const moedaParaNumero = (el) => parseFloat(moedaParaDecimal(el.value)) || 0;
+  const moedaParaNumero = (el) => el ? (parseFloat(moedaParaDecimal(el.value)) || 0) : 0;
 
   // Hora decimal -> "HH:MM", como no apontamento do Movidesk (41,4667 -> 41:28)
   function fmtHoras(horasDecimal) {
     const minutosTotais = Math.round(Number(horasDecimal) * 60);
     return `${Math.floor(minutosTotais / 60)}:${String(minutosTotais % 60).padStart(2, '0')}`;
+  }
+  // "41:28" ou "41" -> hora decimal; qualquer outra coisa -> null
+  function horasParaDecimal(texto) {
+    const m = texto.trim().match(/^(\d{1,3})(?::([0-5]?\d))?$/);
+    return m ? Number(m[1]) + Number(m[2] || 0) / 60 : null;
   }
 
   // ---- Seletor de competência: 6 meses passados + mês atual, com o mês
@@ -177,111 +238,200 @@
   popularSeletorCompetencia();
 
   const statusLabels = { a_pagar: 'a pagar', pago: 'pago', atrasado: 'atrasado' };
-  const calculoLabels = { movidesk: 'Movidesk', fixo: 'fixo', manual: 'manual' };
+  const tagLabels = { movidesk: 'Horas do Movidesk', fixo: 'Valor fixo', manual: 'Valor digitado' };
+  const valorLabels = { movidesk: 'Valor calculado', fixo: 'Valor fixo', manual: 'Valor' };
   let linhasAtuais = [];
 
-  function detalheHoras(linha) {
-    const partes = linha.horas_por_cliente.map(h => `${esc(h.cliente)} ${fmtHoras(h.horas)}`);
-    if (partes.length === 0) return '';
-    const sufixo = linha.calculo === 'fixo' ? ' — dentro do fixo, não pagas por hora' : '';
-    return `<div class="detalhe">${partes.join(' · ')}${sufixo}</div>`;
+  function htmlHorasPorCliente(l) {
+    if (l.horas_por_cliente.length === 0) return '';
+    const informativo = l.calculo === 'fixo';
+    const chips = l.horas_por_cliente.map(h => `<span class="chip">${esc(h.cliente)}<b>${fmtHoras(h.horas)}</b></span>`).join('');
+    return `
+      <div class="horas-clientes${informativo ? ' informativo' : ''}">
+        <div class="legenda">${informativo ? 'Horas no mês — já dentro do fixo' : 'Horas por cliente'}</div>
+        <div class="chips">${chips}</div>
+      </div>`;
+  }
+
+  function htmlLinha(l) {
+    const taxa = l.tipo === 'hora_aberta' && l.valor_hora >= 1 ? `<span>${fmt(l.valor_hora)} por hora</span>` : '';
+
+    if (l.despesa_existente) {
+      return `
+        <div class="linha lancada">
+          <span class="check-lancado">✓</span>
+          <div class="contrato-titulo">${esc(l.descricao)}</div>
+          <span class="status-pill">lançado · ${statusLabels[l.despesa_existente.status] || l.despesa_existente.status}</span>
+          <span class="valor-lancado">${fmt(l.despesa_existente.valor)}</span>
+        </div>`;
+    }
+
+    // Linha sem valor sugerido nasce desmarcada — entra sozinha quando o
+    // valor (ou as horas, em contrato por hora digitado) for preenchido.
+    const temValor = l.valor_base !== null && l.valor_base > 0;
+    const horasDigitadas = l.calculo === 'manual' && l.tipo === 'hora_aberta' && l.valor_hora >= 1;
+    const colHoras = horasDigitadas
+      ? `<div class="campo-label">Horas</div><input type="text" class="horas-input" inputmode="numeric" placeholder="0:00">`
+      : `<div class="campo-label">Horas</div><div class="horas-valor${l.horas === null ? ' vazio' : ''}">${l.horas !== null ? fmtHoras(l.horas) : '—'}</div>`;
+
+    return `
+      <div class="linha${temValor ? '' : ' desmarcada'}" data-id="${l.contrato_fornecedor_id}">
+        <input type="checkbox" class="sel"${temValor ? ' checked' : ''}>
+        <div class="conteudo">
+          <div class="contrato-titulo">${esc(l.descricao)}</div>
+          <div class="meta"><span class="tag ${l.calculo}">${tagLabels[l.calculo]}</span>${taxa}</div>
+          ${htmlHorasPorCliente(l)}
+          ${l.aviso ? `<div class="linha-aviso">${esc(l.aviso)}</div>` : ''}
+        </div>
+        <div class="col-horas">${colHoras}</div>
+        <div class="col-valor">
+          <div class="campo-label">${valorLabels[l.calculo]}</div>
+          <input type="text" inputmode="decimal" class="base" placeholder="R$ 0,00" value="${temValor ? fmt(l.valor_base) : ''}">
+          <div class="linha-total">total <b></b></div>
+        </div>
+        <div class="extras">
+          <label>Vencimento <input type="date" class="venc" value="${l.vencimento}"></label>
+          <button type="button" class="btn-adicional">+ Adicional (despesa, comissão, projeto)</button>
+          <div class="adicional-box">
+            <input type="text" inputmode="decimal" class="adicional" placeholder="R$ 0,00">
+            <input type="text" class="obs" maxlength="255" placeholder="Motivo — ex: atendimento presencial na Fiabesa">
+          </div>
+        </div>
+      </div>`;
   }
 
   function renderizar(previa) {
-    const tbody = document.getElementById('previa-tbody');
+    const container = document.getElementById('fornecedores');
     linhasAtuais = previa.linhas;
 
     const avisosEl = document.getElementById('avisos');
-    const avisos = previa.avisos.slice();
-    previa.consultores_sem_fornecedor.forEach(c => avisos.push(`${c.nome} apontou ${fmtHoras(c.horas)} no Movidesk e não está vinculado a nenhum fornecedor ativo — não entra neste fechamento.`));
-    avisosEl.innerHTML = avisos.map(a => `<div>${esc(a)}</div>`).join('');
-    avisosEl.style.display = avisos.length ? 'block' : 'none';
+    avisosEl.innerHTML = previa.avisos.map(a => `<div>${esc(a)}</div>`).join('');
+    avisosEl.style.display = previa.avisos.length ? 'block' : 'none';
+
+    // Quem aponta hora e não é fornecedor (o próprio Felipe) não é um
+    // problema a resolver — fica só como nota, no fim da página.
+    document.getElementById('nota-rodape').textContent = previa.consultores_sem_fornecedor.length
+      ? 'Fora deste fechamento (apontaram horas, mas não são fornecedores): ' + previa.consultores_sem_fornecedor.map(c => `${c.nome} ${fmtHoras(c.horas)}`).join(', ') + '.'
+      : '';
 
     if (linhasAtuais.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Nenhum contrato de fornecedor ativo.</div></td></tr>';
+      container.innerHTML = '<div class="empty-state">Nenhum contrato de fornecedor ativo.</div>';
       atualizarResumo();
       return;
     }
 
-    let html = '';
-    let fornecedorAnterior = null;
+    // Consultores primeiro (é o que precisa de conferência), depois o resto
+    const grupos = [];
+    const indice = {};
     linhasAtuais.forEach(l => {
-      if (l.fornecedor_id !== fornecedorAnterior) {
-        fornecedorAnterior = l.fornecedor_id;
-        html += `<tr class="fornecedor-header"><td colspan="8">${esc(l.fornecedor_nome)}<span class="categoria">${esc(l.fornecedor_categoria || 'Sem categoria')}</span></td></tr>`;
+      if (!(l.fornecedor_id in indice)) {
+        indice[l.fornecedor_id] = grupos.length;
+        grupos.push({ nome: l.fornecedor_nome, categoria: l.fornecedor_categoria || 'Sem categoria', linhas: [] });
       }
-
-      const taxa = l.tipo === 'hora_aberta' && l.valor_hora ? ` · ${fmt(l.valor_hora)}/h` : '';
-      const contrato = `
-        <div class="contrato-desc">${esc(l.descricao)}<span class="calculo-pill">· ${calculoLabels[l.calculo]}${taxa}</span></div>
-        ${detalheHoras(l)}
-        ${l.aviso ? `<div class="detalhe aviso">${esc(l.aviso)}</div>` : ''}`;
-      const horas = l.horas !== null ? fmtHoras(l.horas) : '—';
-
-      if (l.despesa_existente) {
-        html += `
-          <tr class="lancada">
-            <td></td>
-            <td>${contrato}</td>
-            <td class="horas">${horas}</td>
-            <td colspan="4">Já lançado nesta competência <span class="status-pill">${statusLabels[l.despesa_existente.status] || l.despesa_existente.status}</span></td>
-            <td class="total">${fmt(l.despesa_existente.valor)}</td>
-          </tr>`;
-        return;
-      }
-
-      // Linha manual sem valor sugerido nasce desmarcada — só entra se o
-      // valor for digitado (o campo marca a linha sozinho ao ser preenchido).
-      const temValor = l.valor_base !== null && l.valor_base > 0;
-      html += `
-        <tr data-id="${l.contrato_fornecedor_id}">
-          <td><input type="checkbox" class="sel"${temValor ? ' checked' : ''}></td>
-          <td>${contrato}</td>
-          <td class="horas">${horas}</td>
-          <td><input type="text" inputmode="decimal" class="money base" placeholder="R$ 0,00" value="${temValor ? fmt(l.valor_base) : ''}"></td>
-          <td><input type="text" inputmode="decimal" class="money adicional" placeholder="R$ 0,00"></td>
-          <td><input type="text" class="obs" maxlength="255" placeholder="motivo do adicional ou do ajuste"></td>
-          <td><input type="date" class="venc" value="${l.vencimento}"></td>
-          <td class="total">${fmt(temValor ? l.valor_base : 0)}</td>
-        </tr>`;
+      grupos[indice[l.fornecedor_id]].linhas.push(l);
     });
-    tbody.innerHTML = html;
+    const ehConsultor = (g) => g.categoria.toLowerCase().startsWith('consultor') ? 0 : 1;
+    grupos.sort((a, b) => ehConsultor(a) - ehConsultor(b) || a.nome.localeCompare(b.nome, 'pt-BR'));
 
-    tbody.querySelectorAll('tr[data-id]').forEach(tr => {
-      tr.querySelectorAll('.money').forEach(input => {
-        input.addEventListener('input', () => {
-          aplicarMascaraMoeda(input);
-          const total = moedaParaNumero(tr.querySelector('.base')) + moedaParaNumero(tr.querySelector('.adicional'));
-          tr.querySelector('.total').textContent = fmt(total);
-          tr.querySelector('.sel').checked = total > 0;
-          atualizarResumo();
-        });
+    container.innerHTML = grupos.map(g => `
+      <section class="fornecedor">
+        <div class="fornecedor-head">
+          <div><span class="fornecedor-nome">${esc(g.nome)}</span><span class="categoria">${esc(g.categoria)}</span></div>
+          <div class="fornecedor-total"><small>a lançar</small><b>R$ 0,00</b></div>
+        </div>
+        ${g.linhas.map(htmlLinha).join('')}
+      </section>`).join('');
+
+    container.querySelectorAll('.linha[data-id]').forEach(linha => {
+      const base = linha.querySelector('.base');
+      const adicional = linha.querySelector('.adicional');
+      const sel = linha.querySelector('.sel');
+
+      const aoMudarValor = () => {
+        sel.checked = moedaParaNumero(base) + moedaParaNumero(adicional) > 0;
+        atualizarResumo();
+      };
+      base.addEventListener('input', () => { aplicarMascaraMoeda(base); aoMudarValor(); });
+      adicional.addEventListener('input', () => { aplicarMascaraMoeda(adicional); aoMudarValor(); });
+      sel.addEventListener('change', atualizarResumo);
+
+      linha.querySelector('.btn-adicional').addEventListener('click', (e) => {
+        const box = linha.querySelector('.adicional-box');
+        const abrir = !box.classList.contains('aberto');
+        box.classList.toggle('aberto', abrir);
+        e.target.textContent = abrir ? '− Remover adicional' : '+ Adicional (despesa, comissão, projeto)';
+        if (abrir) {
+          adicional.focus();
+        } else {
+          adicional.value = '';
+          linha.querySelector('.obs').value = '';
+          aoMudarValor();
+        }
       });
-      tr.querySelector('.sel').addEventListener('change', atualizarResumo);
+
+      // Contrato por hora sem horas no Movidesk: digita as horas e o
+      // valor sai de horas × taxa (continua editável depois).
+      const horasInput = linha.querySelector('.horas-input');
+      if (horasInput) {
+        horasInput.addEventListener('input', () => {
+          const l = linhasAtuais.find(x => String(x.contrato_fornecedor_id) === linha.dataset.id);
+          const horas = horasParaDecimal(horasInput.value);
+          linha.dataset.horas = horas !== null ? String(horas) : '';
+          base.value = horas ? fmt(horas * l.valor_hora) : '';
+          aoMudarValor();
+        });
+      }
     });
     atualizarResumo();
   }
 
-  function linhasMarcadas() {
-    return Array.from(document.querySelectorAll('#previa-tbody tr[data-id]')).filter(tr => tr.querySelector('.sel').checked);
-  }
+  const totalDaLinha = (linha) => moedaParaNumero(linha.querySelector('.base')) + moedaParaNumero(linha.querySelector('.adicional'));
+  const linhasMarcadas = () => Array.from(document.querySelectorAll('.linha[data-id]')).filter(l => l.querySelector('.sel').checked);
 
   function atualizarResumo() {
+    // Por linha: esmaece a desmarcada e mostra o total quando há adicional
+    document.querySelectorAll('.linha[data-id]').forEach(linha => {
+      linha.classList.toggle('desmarcada', !linha.querySelector('.sel').checked);
+      const temAdicional = moedaParaNumero(linha.querySelector('.adicional')) > 0;
+      const totalEl = linha.querySelector('.linha-total');
+      totalEl.style.display = temAdicional ? 'block' : 'none';
+      totalEl.querySelector('b').textContent = fmt(totalDaLinha(linha));
+    });
+
+    // Por fornecedor
+    document.querySelectorAll('.fornecedor').forEach(card => {
+      const marcadas = Array.from(card.querySelectorAll('.linha[data-id]')).filter(l => l.querySelector('.sel').checked);
+      const bloco = card.querySelector('.fornecedor-total');
+      bloco.style.visibility = card.querySelector('.linha[data-id]') ? 'visible' : 'hidden';
+      bloco.querySelector('b').textContent = fmt(marcadas.reduce((s, l) => s + totalDaLinha(l), 0));
+    });
+
+    // Geral
     const marcadas = linhasMarcadas();
-    const total = marcadas.reduce((s, tr) => s + moedaParaNumero(tr.querySelector('.base')) + moedaParaNumero(tr.querySelector('.adicional')), 0);
-    document.getElementById('resumo-qtd').textContent = `${marcadas.length} linha${marcadas.length === 1 ? '' : 's'} marcada${marcadas.length === 1 ? '' : 's'}`;
+    const total = marcadas.reduce((s, l) => s + totalDaLinha(l), 0);
+    const qtd = `${marcadas.length} despesa${marcadas.length === 1 ? '' : 's'} marcada${marcadas.length === 1 ? '' : 's'}`;
+    document.getElementById('resumo-qtd').textContent = marcadas.length ? qtd : 'Nenhuma linha marcada';
     document.getElementById('resumo-total').textContent = fmt(total);
     document.getElementById('lancar-btn').disabled = marcadas.length === 0;
+
+    const lancadas = linhasAtuais.filter(l => l.despesa_existente);
+    const horasPagas = linhasAtuais.filter(l => l.calculo === 'movidesk').reduce((s, l) => s + (l.horas || 0), 0);
+    document.getElementById('kpi-lancar').textContent = linhasAtuais.length ? fmt(total) : '—';
+    document.getElementById('kpi-lancar-delta').textContent = linhasAtuais.length ? qtd : '';
+    document.getElementById('kpi-horas').textContent = linhasAtuais.length ? fmtHoras(horasPagas) : '—';
+    document.getElementById('kpi-lancado').textContent = linhasAtuais.length ? fmt(lancadas.reduce((s, l) => s + l.despesa_existente.valor, 0)) : '—';
+    document.getElementById('kpi-lancado-delta').textContent = linhasAtuais.length ? `${lancadas.length} despesa${lancadas.length === 1 ? '' : 's'}` : '';
   }
 
   let cargaAtual = 0;
   async function carregar() {
     const competencia = document.getElementById('period-select').value;
-    const tbody = document.getElementById('previa-tbody');
+    const container = document.getElementById('fornecedores');
     const carga = ++cargaAtual;
     linhasAtuais = [];
     document.getElementById('avisos').style.display = 'none';
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Consultando as horas no Movidesk — pode levar até um minuto...</div></td></tr>';
+    document.getElementById('nota-rodape').textContent = '';
+    container.innerHTML = '<div class="empty-state">Consultando as horas no Movidesk — pode levar até um minuto...</div>';
     atualizarResumo();
 
     try {
@@ -289,13 +439,13 @@
       const data = await resp.json();
       if (carga !== cargaAtual) return; // a competência mudou enquanto carregava
       if (!resp.ok || !data.sucesso) {
-        tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state" style="color:var(--red);">${esc(data.erro || 'Falha ao calcular a prévia.')}${data.detalhe ? ' ' + esc(data.detalhe) : ''}</div></td></tr>`;
+        container.innerHTML = `<div class="empty-state" style="color:var(--red);">${esc(data.erro || 'Falha ao calcular a prévia.')}${data.detalhe ? ' ' + esc(data.detalhe) : ''}</div>`;
         return;
       }
       renderizar(data);
     } catch (err) {
       if (carga !== cargaAtual) return;
-      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state" style="color:var(--red);">Falha de conexão com o servidor.</div></td></tr>';
+      container.innerHTML = '<div class="empty-state" style="color:var(--red);">Falha de conexão com o servidor.</div>';
     }
   }
 
@@ -308,18 +458,17 @@
     const btn = document.getElementById('lancar-btn');
     const msg = document.getElementById('form-msg');
     const competencia = document.getElementById('period-select').value;
-    const marcadas = linhasMarcadas();
 
-    const itens = marcadas.map(tr => {
-      const linha = linhasAtuais.find(l => String(l.contrato_fornecedor_id) === tr.dataset.id);
+    const itens = linhasMarcadas().map(linha => {
+      const l = linhasAtuais.find(x => String(x.contrato_fornecedor_id) === linha.dataset.id);
       return {
-        contrato_fornecedor_id: Number(tr.dataset.id),
-        horas: linha.horas,
-        valor_base: moedaParaNumero(tr.querySelector('.base')),
-        valor_adicional: moedaParaNumero(tr.querySelector('.adicional')),
-        observacao: tr.querySelector('.obs').value.trim(),
-        vencimento: tr.querySelector('.venc').value,
-        calculo: linha.calculo,
+        contrato_fornecedor_id: Number(linha.dataset.id),
+        horas: l.calculo === 'movidesk' ? l.horas : (parseFloat(linha.dataset.horas) || null),
+        valor_base: moedaParaNumero(linha.querySelector('.base')),
+        valor_adicional: moedaParaNumero(linha.querySelector('.adicional')),
+        observacao: linha.querySelector('.obs').value.trim(),
+        vencimento: linha.querySelector('.venc').value,
+        calculo: l.calculo,
       };
     });
     const total = itens.reduce((s, i) => s + i.valor_base + i.valor_adicional, 0);
@@ -339,9 +488,11 @@
       if (!resp.ok) {
         msg.className = 'form-msg error';
         msg.textContent = (data.detalhes ? data.detalhes.join(' ') : data.erro) || 'Erro ao lançar.';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         msg.className = 'form-msg ok';
         msg.innerHTML = `${data.lancados} despesa${data.lancados === 1 ? '' : 's'} lançada${data.lancados === 1 ? '' : 's'} como "a pagar". <a href="crm-newsiga-despesas.php" style="color:inherit; font-weight:700;">Ver em Despesas</a>`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         carregar();
       }
     } catch (err) {
