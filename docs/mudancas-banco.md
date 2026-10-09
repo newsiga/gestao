@@ -219,3 +219,33 @@ Code (leitura é liberada). Conferido depois por consulta: as duas
 colunas criadas e os 18 vínculos preenchidos. Na primeira tentativa só
 o `ALTER` teve efeito; os `UPDATE` foram rodados de novo, sem os
 comentários entre eles.
+
+---
+
+## 2026-10-09 — Contrato de suporte da Dragão passa a mensalidade fixa
+
+Acerto de dado, sem mudança de schema. A Dragão renegociou o suporte
+(proposta PRP-2026-0116, contrato CTR-2026-0106 Rev. 02): sai o pacote
+de 8h com excedente e entra valor fixo mensal de R$ 5.000,00 + imposto,
+a partir da competência 2026-10.
+
+```sql
+-- Antes: tipo = 'banco_horas_minimo', valor = 1440.00, valor_hora = 230.00,
+--        horas_minimas = 8.00, origem_proposta = 'PRP-2026-SUPORTE-0112'
+UPDATE contratos
+SET tipo = 'mensalidade_fixa', valor = 5882.35, valor_hora = NULL,
+    horas_minimas = NULL, origem_proposta = 'PRP-2026-SUPORTE-0116'
+WHERE id = 11 AND cliente_id = 5 AND tipo = 'banco_horas_minimo';
+```
+
+O valor gravado é o total com imposto (5.000,00 / 0,85): em
+`mensalidade_fixa` o `fechar-competencia.php` não aplica o imposto por
+fora. O tipo foi trocado no próprio contrato, e não encerrando e criando
+outro como sugere o `atualizar-contrato.php`, porque é o mesmo contrato
+revisado e as faturas já geradas (2026-08 e 2026-09) guardam valor e
+composição próprios. `movidesk_contract_name` ficou como estava
+("Suporte Dragão"), sem uso no fechamento desse tipo.
+
+**Aplicação:** em 09/10/2026, por SSH. Conferido com
+`php crm/fechar-competencia.php 2026-10 11 --simular`: geraria
+R$ 5.882,35 com vencimento em 10/11/2026.
