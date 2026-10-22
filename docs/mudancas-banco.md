@@ -284,6 +284,8 @@ registrada, e o nome do Movidesk não é usado no fechamento desse tipo.
 desenvolvimento. A mensalidade fixa não controla esse limite: se houver
 excedente em algum mês, ele será lançado à mão como receita avulsa.
 
-**Aplicação:** pendente, pelo Felipe. Depois de rodar, conferir com
-`php crm/fechar-competencia.php 2026-10 18 --simular`: deve gerar
+**Aplicação:** em 22/10/2026, pelo Felipe, via phpMyAdmin (1 linha
+afetada). Conferido por consulta (contrato #18 como `mensalidade_fixa`,
+valor 8235.29, campos de hora nulos) e com
+`php crm/fechar-competencia.php 2026-10 18 --simular`: geraria
 R$ 8.235,29 com vencimento em 05/11/2026.
