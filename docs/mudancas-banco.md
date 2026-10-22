@@ -249,3 +249,41 @@ composição próprios. `movidesk_contract_name` ficou como estava
 **Aplicação:** em 09/10/2026, por SSH. Conferido com
 `php crm/fechar-competencia.php 2026-10 11 --simular`: geraria
 R$ 5.882,35 com vencimento em 10/11/2026.
+
+---
+
+## 2026-10-22 — Contrato de suporte da Mari Louças passa a mensalidade fixa
+
+Acerto de dado, sem mudança de schema. O suporte da Mari Louças deixa de
+ser cobrado por hora (R$ 200,00/h) e passa a valor fechado de
+R$ 7.000,00 + imposto, a partir da competência 2026-10 (cobrança emitida
+no início de novembro, vencimento dia 5).
+
+Conferido por leitura em 22/10/2026: o contrato de suporte do cliente 1
+é o #18 e ainda estava como `hora_aberta`.
+
+```sql
+-- Antes: tipo = 'hora_aberta', valor = NULL, valor_hora = 200.00,
+--        valor_hora_excedente, horas_banco e horas_minimas = NULL,
+--        origem_proposta = 'CTR-2026-0104_SUPORTE_Mari_Loucas'
+UPDATE contratos
+SET tipo = 'mensalidade_fixa', valor = 8235.29, valor_hora = NULL,
+    valor_hora_excedente = NULL, horas_banco = NULL, horas_minimas = NULL
+WHERE id = 18 AND cliente_id = 1 AND tipo = 'hora_aberta';
+```
+
+Mesma regra da Dragão: o valor gravado é o total com imposto
+(7.000,00 / 0,85), porque em `mensalidade_fixa` o `fechar-competencia.php`
+não aplica o imposto por fora; e o tipo foi trocado no próprio contrato,
+sem encerrar e criar outro, para preservar as faturas já geradas
+(2026-08 e 2026-09). `origem_proposta` e `movidesk_contract_name`
+("Suporte Mari Louças") ficam como estão — não há proposta nova
+registrada, e o nome do Movidesk não é usado no fechamento desse tipo.
+
+**Limite de desenvolvimento:** o contrato prevê até 40h mensais de
+desenvolvimento. A mensalidade fixa não controla esse limite: se houver
+excedente em algum mês, ele será lançado à mão como receita avulsa.
+
+**Aplicação:** pendente, pelo Felipe. Depois de rodar, conferir com
+`php crm/fechar-competencia.php 2026-10 18 --simular`: deve gerar
+R$ 8.235,29 com vencimento em 05/11/2026.

@@ -36,6 +36,42 @@ As 10 faturas da competência 2026-08 (vencimento em setembro) estavam todas pag
 - **Parcela #36 (Mari Louças, nº 2, venc. 10/09/2026):** paga no ASAAS em 10/09, mas `gerado` no CRM. O webhook deveria ter atualizado; não foi investigado por quê (webhook ainda não configurado na data? evento não recebido?).
 - **Parcela #32 (Dragão, contrato #6, nº 8, R$ 13.976,47, venc. 10/09/2026):** está como `gerado`, mas com `asaas_payment_id` nulo. Não dá para saber pelo CRM se a cobrança existe no ASAAS nem se foi paga — conferir no painel do ASAAS e vincular.
 
+### Duas faturas de 2026-09 parceladas direto no ASAAS
+
+A Dragão e a Mari Louças pediram para parcelar a fatura de suporte da competência 2026-09. O parcelamento foi feito pelo Felipe só no ASAAS, sem passar pelo CRM:
+
+- a cobrança original da fatura (criada pelo `fechar-competencia.php`, com `externalReference = fatura:ID`) foi editada para o valor e o vencimento da 1ª parcela;
+- as demais parcelas foram criadas como cobranças avulsas no painel do ASAAS, **sem `externalReference`** — o CRM não sabe que elas existem;
+- nenhuma nota fiscal foi cancelada nem emitida: a NFS-e continua sendo a do valor cheio, e as cobranças avulsas não geram nota.
+
+| | Dragão | Mari Louças |
+|---|---|---|
+| Fatura no CRM | #24 (contrato #11) | #27 (contrato #18) |
+| NFS-e | 131, de 01/10/2026 | 134, de 01/10/2026 |
+| Valor da nota / da fatura no CRM | R$ 9.816,27 | R$ 15.749,76 |
+| Desconto | — | R$ 695,28 (acordado R$ 15.054,48) |
+| Vencimento original | 10/10/2026 | 05/10/2026 |
+
+Cobranças no ASAAS (conferidas por leitura em 22/10/2026):
+
+| Cliente | Parcela | Cobrança | Nº ASAAS | Valor | Vencimento | Status em 22/10 |
+|---|---|---|---|---|---|---|
+| Dragão | 1 | `pay_rocyq4ws5ovcf1wk` (original, `fatura:24`) | 925430360 | R$ 4.908,14 | 12/10/2026 | `RECEIVED` em 13/10 |
+| Dragão | 2 | `pay_w0cxiu4xliwpdr2z` (avulsa) | 931955650 | R$ 4.908,13 | 30/10/2026 | `PENDING` |
+| Mari Louças | 1 | `pay_zmff3z5kc1y708zp` (original, `fatura:27`) | 925430416 | R$ 9.411,76 | 22/10/2026 | `RECEIVED_IN_CASH` em 22/10 |
+| Mari Louças | 2 | `pay_cd0zhpr66fjsf1mk` (avulsa) | 943921699 | R$ 2.821,36 | 05/11/2026 | `PENDING` |
+| Mari Louças | 3 | `pay_j4tozjad6t5kmz7o` (avulsa) | 943923155 | R$ 2.821,36 | 26/11/2026 | `PENDING` |
+
+**Valor e vencimento no CRM continuam os originais.** O webhook ignora qualquer evento de cobrança `fatura:ID` (só trata `parcela:ID`), inclusive o `PAYMENT_UPDATED` disparado pela edição da cobrança original. Por isso as faturas #24 e #27 estão com o valor cheio, o vencimento original e `status = 'gerado'`. Para a receita da competência o valor cheio está certo, porque é o valor da nota — não ajustar.
+
+**Ao desenvolver este ponto 1:**
+
+- A sincronização retroativa (item 2 de "O que fazer") **não pode marcar as faturas #24 e #27 como pagas** só porque a cobrança original está `RECEIVED`/`RECEIVED_IN_CASH`: ela é só a 1ª parcela, e as outras são as cobranças avulsas acima, que o CRM não conhece. Excluir as duas da sincronização (ou tratá-las à mão) e só dar baixa depois que todas as parcelas forem pagas — Dragão em 30/10, Mari Louças em 26/11, se nada mudar.
+- O mesmo vale para o webhook: `PAYMENT_RECEIVED` da cobrança original de uma fatura parcelada não pode virar `pago` na fatura.
+- Se o webhook passar a tratar `PAYMENT_UPDATED` de fatura do mesmo jeito que trata de parcela (item 1 de "O que fazer"), uma edição como esta gravaria o valor da 1ª parcela em `faturas.valor` e derrubaria a receita da competência. Fatura é o valor da nota; antes de copiar o tratamento das parcelas, decidir se `PAYMENT_UPDATED` deve atualizar só o vencimento, ou nada.
+
+**Pendente — NFS-e 134 da Mari Louças:** o contador ainda vai decidir o tratamento da nota por causa do desconto de R$ 695,28. Se a nota for reemitida pelo valor com desconto (R$ 15.054,48), a fatura #27 precisa ser ajustada no CRM (`valor`, `valor_liquido` e `valor_imposto`). Se a nota ficar como está, a fatura também fica.
+
 ## 2. Card "A gerar essa semana" fica sempre em zero
 
 ### Situação hoje
