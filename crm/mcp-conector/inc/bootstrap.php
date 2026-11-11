@@ -27,6 +27,11 @@ require_once __DIR__ . '/../../db.php'; // carrega o config-crm.php
 
 date_default_timezone_set('America/Recife');
 
+// O php.ini da Hostgator usa serialize_precision alto, e o json_encode
+// escrevia 85306.9299999999930150806903839111328125 em vez de 85306.93.
+// -1 é o padrão do PHP: a menor representação que volta ao mesmo número.
+ini_set('serialize_precision', '-1');
+
 const MCP_VERSAO = '1.0.0';
 const MCP_NOME = 'crm-newsiga-fluxo-caixa';
 

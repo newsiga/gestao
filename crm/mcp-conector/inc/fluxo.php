@@ -98,6 +98,11 @@ function fx_r($valor): float
     return round((float) $valor, 2);
 }
 
+function fx_moeda(float $valor): string
+{
+    return 'R$ ' . number_format($valor, 2, ',', '.');
+}
+
 function fx_somar(array $itens, string $campo, ?callable $filtro = null): float
 {
     $total = 0.0;
@@ -289,9 +294,18 @@ function fx_enriquecer_receitas(array &$itens): ?string
                 } elseif (!in_array($statusAsaas, ASAAS_STATUS_EM_ABERTO, true)) {
                     $observacoes[] = 'Cobrança no ASAAS está "' . $item['status_asaas'] . '": conferir.';
                 }
-                if ($valorAsaas !== null && abs($valorAsaas - $valor) >= 0.01) {
-                    $observacoes[] = 'Valor da cobrança no ASAAS (R$ ' . number_format($valorAsaas, 2, ',', '.')
-                        . ') difere do CRM: a fatura pode ter sido dividida ou editada direto no ASAAS, e o restante pode estar numa cobrança avulsa.';
+                $pago = in_array($statusAsaas, ASAAS_STATUS_PAGO, true);
+                if ($valorAsaas !== null && $pago) {
+                    $item['valor_pago_asaas'] = fx_r($valorAsaas);
+                }
+                if ($valorAsaas !== null && $valor - $valorAsaas >= 0.01) {
+                    $observacoes[] = 'Valor da cobrança no ASAAS (' . fx_moeda($valorAsaas) . ') é menor que no CRM: a fatura pode ter sido '
+                        . 'dividida ou editada direto no ASAAS, e o restante pode estar numa cobrança avulsa.';
+                } elseif ($valorAsaas !== null && $valorAsaas - $valor >= 0.01) {
+                    // Pagamento em atraso: o ASAAS soma juros e multa ao valor da cobrança.
+                    $observacoes[] = $pago
+                        ? 'Pago com acréscimo de ' . fx_moeda($valorAsaas - $valor) . ' (juros/multa por atraso); total pago no ASAAS: ' . fx_moeda($valorAsaas) . '.'
+                        : 'Valor no ASAAS (' . fx_moeda($valorAsaas) . ') é maior que no CRM: pode incluir juros/multa ou ter sido editado no ASAAS.';
                 }
             }
         } elseif ($item['status_crm'] === 'a_gerar') {
