@@ -1,0 +1,12 @@
+# Conector MCP (docs/conector-mcp.md): endereços públicos -> scripts em mcp-conector/.
+# A pasta tem nome diferente da URL /mcp de propósito: assim o servidor não
+# redireciona /mcp para /mcp/ (um 301 num POST quebraria o protocolo).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^mcp/?$ mcp-conector/index.php [L,QSA]
+    RewriteRule ^oauth/authorize$ mcp-conector/authorize.php [L,QSA]
+    RewriteRule ^oauth/token$ mcp-conector/token.php [L,QSA]
+    RewriteRule ^oauth/register$ mcp-conector/register.php [L,QSA]
+    RewriteRule ^\.well-known/oauth-protected-resource(/mcp)?/?$ mcp-conector/well-known.php?doc=recurso [L,QSA]
+    RewriteRule ^\.well-known/oauth-authorization-server(/mcp)?/?$ mcp-conector/well-known.php?doc=servidor [L,QSA]
+</IfModule>

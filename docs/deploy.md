@@ -68,7 +68,7 @@ Ficam só no servidor, fora do Git (listados no `.gitignore`):
 
 | Sistema | Arquivo no servidor |
 |---|---|
-| CRM | `~/repos/gestao/config-crm.php` |
+| CRM (inclui as constantes `MCP_*` do conector MCP, ver `docs/conector-mcp.md`) | `~/repos/gestao/config-crm.php` |
 | Área do cliente (banco) | `~/repos/gestao/site/area-do-cliente/config.php` |
 | Área do cliente (Movidesk) | `~/repos/gestao/private/newsiga-movidesk.php` |
 

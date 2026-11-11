@@ -289,3 +289,26 @@ afetada). Conferido por consulta (contrato #18 como `mensalidade_fixa`,
 valor 8235.29, campos de hora nulos) e com
 `php crm/fechar-competencia.php 2026-10 18 --simular`: geraria
 R$ 8.235,29 com vencimento em 05/11/2026.
+
+---
+
+## Pendente — Banco próprio do conector MCP
+
+Contexto completo em `docs/conector-mcp.md`. **Nenhuma tabela do CRM é
+alterada**: o conector usa um banco separado (`hgnew010_mcp`) para
+tokens do OAuth, log e limite de requisições, e um usuário que no banco
+do CRM só tem SELECT.
+
+1. cPanel → Bancos de dados MySQL: criar o banco `hgnew010_mcp` e o
+   usuário `hgnew010_mcp`; dar SELECT, INSERT, UPDATE e DELETE no
+   `hgnew010_mcp` e **só SELECT** no banco do CRM.
+2. phpMyAdmin, no banco `hgnew010_mcp`: rodar `docs/conector-mcp-schema.sql`
+   (quatro `CREATE TABLE`: `mcp_clientes`, `mcp_codigos`, `mcp_tokens`,
+   `mcp_log`).
+3. `config-crm.php`: acrescentar `MCP_DB_NAME`, `MCP_DB_USER` e
+   `MCP_DB_PASS`.
+
+Sem backup prévio: só cria tabelas novas, num banco novo.
+
+**Aplicação:** ainda não aplicado. Ao aplicar, trocar "Pendente" no
+título pela data.
