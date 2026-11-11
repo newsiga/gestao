@@ -68,6 +68,38 @@ function asaas_leitura_get(string $caminho, array $query = []): array
 }
 
 /**
+ * Cobranças de um cliente do ASAAS com vencimento no intervalo (para achar
+ * as avulsas de uma fatura dividida). Devolve null se o ASAAS falhar.
+ */
+function asaas_cobrancas_do_cliente(string $customerId, string $de, string $ate): ?array
+{
+    static $cache = [];
+    $chave = "$customerId|$de|$ate";
+    if (array_key_exists($chave, $cache)) {
+        return $cache[$chave];
+    }
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $customerId)) {
+        return $cache[$chave] = null;
+    }
+    try {
+        $cobrancas = [];
+        for ($offset = 0; $offset < 300; $offset += 100) {
+            $lista = asaas_leitura_get('/payments', [
+                'customer' => $customerId, 'dueDate[ge]' => $de, 'dueDate[le]' => $ate, 'limit' => 100, 'offset' => $offset,
+            ]);
+            $cobrancas = array_merge($cobrancas, $lista['data'] ?? []);
+            if (empty($lista['hasMore'])) {
+                break;
+            }
+        }
+        return $cache[$chave] = $cobrancas;
+    } catch (Throwable $e) {
+        error_log('MCP: listagem de cobranças do cliente no ASAAS falhou: ' . $e->getMessage());
+        return $cache[$chave] = null;
+    }
+}
+
+/**
  * Busca no ASAAS as cobranças com esses ids. Primeiro lista as cobranças
  * por faixa de vencimento (poucas chamadas cobrem tudo); o que não vier na
  * lista (vencimento alterado no ASAAS, cobrança excluída) é buscado uma a

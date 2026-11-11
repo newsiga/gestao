@@ -126,7 +126,7 @@ function fx_faturas(string $ini, string $fim, bool $soContratosAtivos, bool $soN
     $sql = "
         SELECT f.id, f.contrato_id, f.competencia, f.valor, f.vencimento, f.status, f.asaas_payment_id,
                c.tipo AS contrato_tipo, c.descricao AS contrato_descricao, c.faturamento_gerenciado_por,
-               cl.nome AS cliente
+               cl.nome AS cliente, cl.asaas_customer_id
         FROM " . crm_t('faturas') . " f
         JOIN " . crm_t('contratos') . " c ON c.id = f.contrato_id
         JOIN " . crm_t('clientes') . " cl ON cl.id = c.cliente_id
@@ -152,6 +152,7 @@ function fx_faturas(string $ini, string $fim, bool $soContratosAtivos, bool $soN
         'valor'            => fx_r($f['valor']),
         'status_crm'       => $f['status'],
         'asaas_payment_id' => $f['asaas_payment_id'] ?: null,
+        'asaas_customer_id' => $f['asaas_customer_id'] ?: null,
         'gerenciado_por'   => $f['faturamento_gerenciado_por'],
     ], $stmt->fetchAll());
 }
@@ -160,7 +161,7 @@ function fx_parcelas(string $ini, string $fim, bool $soNaoPagas): array
 {
     $sql = "
         SELECT p.id, p.contrato_id, p.numero, p.valor, p.vencimento, p.status, p.asaas_payment_id,
-               c.descricao AS contrato_descricao, cl.nome AS cliente
+               c.descricao AS contrato_descricao, cl.nome AS cliente, cl.asaas_customer_id
         FROM " . crm_t('parcelas') . " p
         JOIN " . crm_t('contratos') . " c ON c.id = p.contrato_id
         JOIN " . crm_t('clientes') . " cl ON cl.id = c.cliente_id
@@ -183,6 +184,7 @@ function fx_parcelas(string $ini, string $fim, bool $soNaoPagas): array
         'valor'            => fx_r($p['valor']),
         'status_crm'       => $p['status'],
         'asaas_payment_id' => $p['asaas_payment_id'] ?: null,
+        'asaas_customer_id' => $p['asaas_customer_id'] ?: null,
         'gerenciado_por'   => 'sistema',
     ], $stmt->fetchAll());
 }
@@ -258,6 +260,7 @@ function fx_enriquecer_receitas(array &$itens): ?string
     }
     $consulta = $ids ? asaas_cobrancas_por_id($ids, $min, $max) : ['mapa' => [], 'erro' => null];
     $mapa = $consulta['mapa'];
+    $usadas = []; // cobranças avulsas já atribuídas a alguma fatura dividida
 
     foreach ($itens as &$item) {
         $valor = (float) $item['valor'];
@@ -299,8 +302,18 @@ function fx_enriquecer_receitas(array &$itens): ?string
                     $item['valor_pago_asaas'] = fx_r($valorAsaas);
                 }
                 if ($valorAsaas !== null && $valor - $valorAsaas >= 0.01) {
-                    $observacoes[] = 'Valor da cobrança no ASAAS (' . fx_moeda($valorAsaas) . ') é menor que no CRM: a fatura pode ter sido '
-                        . 'dividida ou editada direto no ASAAS, e o restante pode estar numa cobrança avulsa.';
+                    // Fatura dividida no ASAAS: procura as partes nas cobranças avulsas do mesmo cliente.
+                    $divisao = fx_completar_com_avulsas($item, $valor - $valorAsaas, $usadas);
+                    $recebido += $divisao['recebido'];
+                    $abertos = $divisao['vencimentos_abertos'];
+                    if (!$pago) {
+                        $abertos[] = $vencimentoEfetivo;
+                    }
+                    if ($abertos) {
+                        $vencimentoEfetivo = min($abertos);
+                    }
+                    $observacoes[] = 'Cobrança vinculada no ASAAS vale ' . fx_moeda($valorAsaas) . ', menos que a fatura do CRM (fatura dividida ou editada no ASAAS). '
+                        . $divisao['texto'];
                 } elseif ($valorAsaas !== null && $valorAsaas - $valor >= 0.01) {
                     // Pagamento em atraso: o ASAAS soma juros e multa ao valor da cobrança.
                     $observacoes[] = $pago
@@ -317,6 +330,7 @@ function fx_enriquecer_receitas(array &$itens): ?string
             $observacoes[] = 'Faturamento manual, fora do ASAAS; vale o status do CRM.';
         }
 
+        $recebido = min($valor, $recebido);
         $aberto = max(0.0, $valor - $recebido);
         $item['valor_recebido'] = fx_r($recebido);
         $item['valor_em_aberto'] = fx_r($aberto);
@@ -335,11 +349,83 @@ function fx_enriquecer_receitas(array &$itens): ?string
         if ($observacoes) {
             $item['observacao'] = implode(' ', $observacoes);
         }
-        unset($item['gerenciado_por']);
+        unset($item['gerenciado_por'], $item['asaas_customer_id']);
     }
     unset($item);
 
     return $consulta['erro'];
+}
+
+/**
+ * Fatura dividida direto no ASAAS (ex.: Dragão e Mari Louças, 2026-09): a
+ * cobrança vinculada passa a valer só uma parte, e o resto vai para
+ * cobranças avulsas criadas à mão, sem vínculo com o CRM. Esta função
+ * procura essas avulsas: mesmo cliente no ASAAS, sem externalReference,
+ * fora de assinatura, com vencimento de 15 dias antes a 120 dias depois do
+ * vencimento da fatura, somando no máximo o valor que falta.
+ *
+ * É uma heurística: uma avulsa de outro assunto do mesmo cliente nesse
+ * período pode ser contada. Por isso o texto devolvido lista cada cobrança
+ * usada, para conferência. $usadas evita usar a mesma avulsa duas vezes.
+ */
+function fx_completar_com_avulsas(array $item, float $falta, array &$usadas): array
+{
+    $resultado = ['recebido' => 0.0, 'vencimentos_abertos' => [], 'texto' => ''];
+    $semCobranca = $falta;
+    $cliente = $item['asaas_customer_id'] ?? null;
+
+    $lista = $cliente ? asaas_cobrancas_do_cliente(
+        $cliente,
+        date('Y-m-d', strtotime($item['vencimento'] . ' -15 days')),
+        date('Y-m-d', strtotime($item['vencimento'] . ' +120 days'))
+    ) : null;
+
+    if ($lista === null) {
+        $resultado['vencimentos_abertos'][] = $item['vencimento'];
+        $resultado['texto'] = 'Não foi possível procurar as cobranças avulsas do cliente no ASAAS; o restante ('
+            . fx_moeda($falta) . ') aparece em aberto.';
+        return $resultado;
+    }
+
+    $candidatas = array_filter($lista, fn($c) =>
+        !empty($c['id']) && $c['id'] !== $item['asaas_payment_id'] && !isset($usadas[$c['id']])
+        && empty($c['externalReference']) && empty($c['subscription']) && empty($c['deleted'])
+        && in_array($c['status'] ?? '', array_merge(ASAAS_STATUS_PAGO, ASAAS_STATUS_EM_ABERTO), true));
+    usort($candidatas, fn($a, $b) => [$a['dueDate'] ?? '', $a['id']] <=> [$b['dueDate'] ?? '', $b['id']]);
+
+    $partes = [];
+    foreach ($candidatas as $c) {
+        if ($semCobranca < 0.01) {
+            break;
+        }
+        // Paga com atraso, o value inclui juros/multa; o valor original é o que conta para a divisão.
+        $base = (float) (!empty($c['originalValue']) ? $c['originalValue'] : ($c['value'] ?? 0));
+        if ($base <= 0 || $base > $semCobranca + 0.01) {
+            continue;
+        }
+        $usadas[$c['id']] = true;
+        $semCobranca -= $base;
+        $pago = in_array($c['status'], ASAAS_STATUS_PAGO, true);
+        if ($pago) {
+            $resultado['recebido'] += $base;
+        } else {
+            $resultado['vencimentos_abertos'][] = $c['dueDate'];
+        }
+        $partes[] = $c['id'] . ' de ' . fx_moeda($base) . ', venc. ' . $c['dueDate'] . ', '
+            . (ASAAS_STATUS_ROTULO[$c['status']] ?? strtolower($c['status']))
+            . ($pago && !empty($c['paymentDate']) ? ' em ' . $c['paymentDate'] : '');
+    }
+
+    $texto = $partes
+        ? 'Cobranças avulsas do mesmo cliente consideradas como o restante (identificadas por cliente e vencimento próximo; conferir): '
+            . implode('; ', $partes) . '.'
+        : 'Nenhuma cobrança avulsa do cliente encontrada no ASAAS para o restante.';
+    if ($semCobranca >= 0.01) {
+        $resultado['vencimentos_abertos'][] = $item['vencimento'];
+        $texto .= ' Sem cobrança encontrada para ' . fx_moeda($semCobranca) . '.';
+    }
+    $resultado['texto'] = $texto;
+    return $resultado;
 }
 
 // ---------------------------------------------------------------- despesas

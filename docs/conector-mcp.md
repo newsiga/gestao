@@ -94,6 +94,14 @@ DELETE FROM mcp_codigos WHERE expira_em < NOW() - INTERVAL 1 DAY;
 
   Contrato por hora sem fatura não entra: o valor só existe depois do fechamento. O resultado lista esses contratos numa observação.
 - **Recebido:** o webhook do ASAAS só atualiza **parcelas**; as faturas mensais ficam como `gerado` no CRM mesmo depois de pagas. Por isso o recebido de fatura vem do ASAAS, consultado a cada chamada. Se o ASAAS não responder, vale o status do CRM e o resultado avisa.
-- **Faturas divididas no ASAAS** (ex.: Dragão 2026-09): o CRM tem a fatura inteira, mas a cobrança vinculada vale só uma parte. O conector conta como recebido só o valor da cobrança vinculada e mostra o resto em aberto, com observação. A cobrança avulsa criada à mão no ASAAS não tem vínculo com o CRM e não é vista.
+- **Faturas divididas no ASAAS** (ex.: Dragão e Mari Louças, 2026-09): o CRM tem a fatura inteira, mas a cobrança vinculada vale só uma parte, e o resto vai para cobranças avulsas criadas à mão.
+  - **Como o conector acha o restante:** procura no ASAAS cobranças do mesmo cliente que atendam a tudo isto:
+    - sem `externalReference`;
+    - fora de assinatura;
+    - com vencimento de 15 dias antes a 120 dias depois da fatura.
+
+    Soma essas cobranças até completar a diferença: as pagas contam como recebidas, e as abertas, com o vencimento delas.
+  - **Risco da heurística:** uma avulsa de outro assunto do mesmo cliente nesse período pode ser contada por engano. Por isso a observação de cada fatura lista as cobranças usadas, para conferir.
+- **Cobrança sem vínculo:** parcela ou fatura marcada como gerada no CRM, mas sem cobrança do ASAAS vinculada, aparece em aberto com aviso para conferir.
 - **Despesa prevista:** soma os lançamentos com vencimento no mês. Do mês atual em diante, também entram os contratos **fixos** de fornecedor que ainda não têm lançamento no mês. A tela de Despesas não faz isso; aqui entra para a projeção não sair otimista.
 - **Sem saldo bancário:** o CRM não tem saldo de conta. O saldo do conector é só o resultado do mês, e o "disponível para investir" não conta sobras de meses anteriores.
