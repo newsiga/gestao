@@ -322,3 +322,33 @@ Os dois acertos de dados que o conector revelou foram feitos pelas telas
 do CRM, sem SQL: o contrato do fornecedor Movidesk passou para `concluido`
 (anual, pago em 3 parcelas já quitadas) e a despesa #15 (parcela do
 Movidesk de 2026-09) passou para `pago`.
+
+---
+
+## 2026-11-10 — Desconto na fatura de setembro da Mari Louças
+
+Acerto de dado, sem mudança de schema. A fatura #27 (contrato 18,
+competência 2026-09) foi dividida direto no ASAAS:
+- a cobrança vinculada foi editada para R$ 9.411,76 e recebida em
+  dinheiro em 22/10;
+- duas avulsas de R$ 2.821,36 foram pagas em 26/10 e 05/11;
+- os R$ 695,28 restantes foram concedidos como desconto.
+
+O CRM continuava com o valor cheio, e o conector MCP mostrava a diferença
+como inadimplência.
+
+```sql
+-- Antes: valor = 15749.76, valor_liquido = 13387.30, valor_imposto = 2362.46
+UPDATE faturas
+SET valor = 15054.48, valor_liquido = 12796.31, valor_imposto = 2258.17
+WHERE id = 27 AND valor = 15749.76;
+```
+
+Líquido e imposto foram recalculados pela mesma regra do fechamento
+(líquido = total × 0,85; imposto = total − líquido), para as três colunas
+continuarem batendo. O faturamento de outubro no painel cai R$ 695,28,
+o valor do desconto.
+
+**Aplicação:** em 10/11/2026, pelo Felipe, via phpMyAdmin (1 linha
+afetada). Backup: print do `SELECT * FROM faturas WHERE id = 27` antes
+da alteração.
