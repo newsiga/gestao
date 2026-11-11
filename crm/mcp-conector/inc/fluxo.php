@@ -310,6 +310,9 @@ function fx_enriquecer_receitas(array &$itens): ?string
             }
         } elseif ($item['status_crm'] === 'a_gerar') {
             $observacoes[] = 'Cobrança ainda não emitida no ASAAS.';
+        } elseif ($item['gerenciado_por'] === 'sistema') {
+            $observacoes[] = 'Marcada como "' . $item['status_crm'] . '" no CRM, mas sem cobrança do ASAAS vinculada: não dá para '
+                . 'saber se foi paga. Conferir no ASAAS e, se paga, marcar como paga no CRM.';
         } elseif ($item['gerenciado_por'] === 'manual') {
             $observacoes[] = 'Faturamento manual, fora do ASAAS; vale o status do CRM.';
         }
