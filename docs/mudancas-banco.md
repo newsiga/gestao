@@ -292,7 +292,7 @@ R$ 8.235,29 com vencimento em 05/11/2026.
 
 ---
 
-## Pendente — Banco próprio do conector MCP
+## 2026-11-10 — Banco próprio do conector MCP
 
 Contexto completo em `docs/conector-mcp.md`. **Nenhuma tabela do CRM é
 alterada**: o conector usa um banco separado (`hgnew010_mcp`) para
@@ -310,5 +310,15 @@ do CRM só tem SELECT.
 
 Sem backup prévio: só cria tabelas novas, num banco novo.
 
-**Aplicação:** ainda não aplicado. Ao aplicar, trocar "Pendente" no
-título pela data.
+**Aplicação:** em 10/11/2026, pelo Felipe:
+- banco `hgnew010_mcp` e usuário criados pelo cPanel;
+- tabelas criadas pelo phpMyAdmin;
+- constantes `MCP_*` acrescentadas ao `config-crm.php`.
+
+Conferido pelo MCP Inspector (OAuth e as cinco tools contra o banco real)
+e pela conexão do conector no Claude.
+
+Os dois acertos de dados que o conector revelou foram feitos pelas telas
+do CRM, sem SQL: o contrato do fornecedor Movidesk passou para `concluido`
+(anual, pago em 3 parcelas já quitadas) e a despesa #15 (parcela do
+Movidesk de 2026-09) passou para `pago`.
